@@ -1,0 +1,5 @@
+package push
+
+func Broadcaster() {
+
+}
