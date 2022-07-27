@@ -1,5 +1,7 @@
 package push
 
-func Broadcaster() {
-
+func broadcaster(msg string) {
+	for _, conn := range conns {
+		conn.write(msg)
+	}
 }

@@ -29,12 +29,16 @@ var (
 func Handle() {
 	for {
 		select {
-		case <-connAddCh0:
-
-		case <-connRmCh0:
-
-		case <-broadcast0:
-
+		case content := <-pushCh0:
+			if _, exist := conns[content.Id]; exist {
+				conns[content.Id].write(content.Msg)
+			}
+		case conn := <-connAddCh0:
+			conns[conn.Id] = conn
+		case conn := <-connRmCh0:
+			delete(conns, conn.Id)
+		case msg := <-broadcast0:
+			broadcaster(msg)
 		}
 	}
 }

@@ -8,14 +8,6 @@ import (
 	"net/http"
 )
 
-type a interface {
-	a()
-}
-
-type st struct {
-	a
-}
-
 func main() {
 	log.Println("start pushServer")
 
@@ -32,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go push.Broadcaster()
+	go push.Handle()
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
