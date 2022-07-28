@@ -10,10 +10,11 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:9003")
+	conn, err := net.Dial("tcp", "localhost:9000")
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("connect to server %s\n", conn.RemoteAddr().String())
 
 	var (
 		id   = 114514
@@ -27,6 +28,7 @@ func main() {
 		fmt.Errorf("write error: %v", wErr)
 		return
 	}
+	fmt.Printf("send id:%d  succeed \n", id)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 

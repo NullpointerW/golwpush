@@ -65,6 +65,7 @@ func HeartbeatCheck(pushCli PushCli) {
 			pushCli.Close()
 			return
 		case <-cli.pongCh:
+			fmt.Println("recv pong")
 			t.Reset(time.Second * 60)
 		}
 	}
