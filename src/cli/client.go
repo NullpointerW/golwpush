@@ -1,26 +1,32 @@
 package cli
 
 import (
+	"GoPush/src/push/errs"
 	"context"
+	"fmt"
 	"net"
+	"os"
 	"time"
 )
 
 type PushCli interface {
-	Read() (length int, err error)
+	Read(buff []byte) (length int, err error)
 	Write(b []byte) (length int, err error)
 	Close()
+	PongRecv()
 }
 
 type client struct {
 	ctx     context.Context
+	cFunc   context.CancelFunc
 	buffer  []byte
 	id      int64
 	tcpConn net.Conn
+	pongCh  chan struct{}
 }
 
-func (cli *client) Read() (length int, err error) {
-	length, err = cli.tcpConn.Read(cli.buffer)
+func (cli *client) Read(buff []byte) (length int, err error) {
+	length, err = cli.tcpConn.Read(buff)
 	return
 }
 
@@ -30,10 +36,41 @@ func (cli *client) Write(b []byte) (length int, err error) {
 }
 
 func (cli *client) Close() {
+	cli.cFunc()
 	cli.tcpConn.Close()
 }
 
-func Heartbeat(pushCli PushCli) {
+func (cli *client) PongRecv() {
+	cli.pongCh <- struct{}{}
+}
+
+func HeartbeatCheck(pushCli PushCli) {
+	var (
+		cli *client
+	)
+	if conv, ok := pushCli.(*client); !ok {
+		pushCli.Close()
+		return
+	} else {
+		cli = conv
+	}
+	t := time.NewTimer(time.Second * 60)
+	defer t.Stop()
+	for {
+		select {
+		case <-cli.ctx.Done():
+			return
+		case <-t.C:
+			fmt.Fprintf(os.Stderr, errs.HeartbeatTimeout.Error())
+			pushCli.Close()
+			return
+		case <-cli.pongCh:
+			t.Reset(time.Second * 60)
+		}
+	}
+}
+
+func SendHeartbeat(pushCli PushCli) {
 	var (
 		cli *client
 	)
@@ -64,6 +101,8 @@ func NewClient(conn net.Conn, id int64) (cli PushCli, cancelFunc context.CancelF
 		buffer:  make([]byte, 128),
 		id:      id,
 		tcpConn: conn,
+		cFunc:   cancelFunc,
+		pongCh:  make(chan struct{}, 1000),
 	}
 	return cli, cancelFunc
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -15,19 +16,31 @@ func main() {
 	}
 
 	var (
-		id = 114514
+		id   = 114514
+		buff = make([]byte, 1024)
 	)
-	pCli, cancelFunc := cli.NewClient(conn, int64(id))
+	pCli, _ := cli.NewClient(conn, int64(id))
 	defer pCli.Close()
 	msg := []byte(strconv.Itoa(id))
 	_, wErr := pCli.Write(msg)
 	if wErr != nil {
-		fmt.Errorf("")
+		fmt.Errorf("write error: %v", wErr)
 		return
 	}
+	go cli.SendHeartbeat(pCli)
+	go cli.HeartbeatCheck(pCli)
 
 	for {
-
+		l, err := pCli.Read(buff)
+		if err != nil {
+			pCli.Close()
+			return
+		}
+		msg := string(buff[:l])
+		if strings.EqualFold(msg, "pong") {
+			pCli.PongRecv()
+		} else {
+			fmt.Println(msg)
+		}
 	}
-
 }
