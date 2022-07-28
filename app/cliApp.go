@@ -1,7 +1,7 @@
 package main
 
 import (
-	"GoPush/src/cli"
+	"GoPush/cli"
 	"fmt"
 	"log"
 	"net"

@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"GoPush/src/push/errs"
+	"GoPush/errs"
 	"context"
 	"fmt"
 	"net"

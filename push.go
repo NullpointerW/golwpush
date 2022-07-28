@@ -1,4 +1,4 @@
-package push
+package GoPush
 
 type defaultPush struct {
 	banned map[int64]struct{}

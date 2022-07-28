@@ -1,7 +1,7 @@
 package httpHandler
 
 import (
-	"GoPush/src/push"
+	"GoPush"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -9,11 +9,11 @@ import (
 )
 
 var HttpPushHandler = Handler{
-	Adapter: push.Default,
+	Adapter: GoPush.Default,
 }
 
 type Handler struct {
-	push.Adapter
+	GoPush.Adapter
 }
 
 func (httpPush Handler) ReqPush(w http.ResponseWriter, req *http.Request) {

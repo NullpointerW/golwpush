@@ -1,8 +1,8 @@
 package main
 
 import (
-	"GoPush/src/push"
-	"GoPush/src/push/httpHandler"
+	"GoPush"
+	"GoPush/httpHandler"
 	"log"
 	"net"
 	"net/http"
@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go push.Handle()
+	go GoPush.Handle()
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -32,7 +32,7 @@ func main() {
 			continue
 		}
 
-		go push.InitConn(conn)
+		go GoPush.InitConn(conn)
 
 	}
 }
