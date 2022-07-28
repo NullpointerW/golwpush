@@ -8,9 +8,12 @@ import (
 	"net/http"
 )
 
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+}
+
 func main() {
 	log.Println("start pushServer")
-
 	go func() {
 		log.Println("正在启动http服务...")
 		mux := http.NewServeMux()
