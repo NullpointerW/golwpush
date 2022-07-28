@@ -14,9 +14,9 @@ func main() {
 	go func() {
 		log.Println("正在启动http服务...")
 		mux := http.NewServeMux()
-		h := httpHandler.HttpPushHandler
-		mux.Handle("/push", http.HandlerFunc(h.ReqPush))
-		mux.Handle("/broadcast", http.HandlerFunc(h.ReqBroadcast))
+		h := httpHandler.PushHandler
+		mux.Handle("/push", http.HandlerFunc(h.Push))
+		mux.Handle("/broadcast", http.HandlerFunc(h.Broadcast))
 		log.Fatal(http.ListenAndServe("localhost:8000", mux))
 	}()
 	log.Println("正在启动tcp服务...")
