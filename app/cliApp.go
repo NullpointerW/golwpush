@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+}
+
 func main() {
 	conn, err := net.Dial("tcp", "localhost:9000")
 	if err != nil {
@@ -25,16 +29,16 @@ func main() {
 	msg := []byte(strconv.Itoa(id))
 	_, wErr := pCli.Write(msg)
 	if wErr != nil {
-		fmt.Errorf("write error: %v", wErr)
-		return
+		log.Fatalf("write error: %v", wErr)
 	}
-	fmt.Printf("send id:%d  succeed \n", id)
+	log.Printf("send id:%d  succeed \n", id)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 
 	for {
 		l, err := pCli.Read(buff)
 		if err != nil {
+			log.Fatal(err)
 			pCli.Close()
 			return
 		}
@@ -42,7 +46,7 @@ func main() {
 		if strings.EqualFold(msg, "pong") {
 			pCli.PongRecv()
 		} else {
-			fmt.Println(msg)
+			log.Println(msg)
 		}
 	}
 }

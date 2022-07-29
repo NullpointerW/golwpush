@@ -4,6 +4,7 @@ import (
 	"GoPush/errs"
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"time"
@@ -65,7 +66,7 @@ func HeartbeatCheck(pushCli PushCli) {
 			pushCli.Close()
 			return
 		case <-cli.pongCh:
-			fmt.Println("recv pong")
+			log.Println("recv pong")
 			t.Reset(time.Second * 60)
 		}
 	}
