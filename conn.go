@@ -2,8 +2,8 @@ package GoPush
 
 import (
 	"GoPush/errs"
+	"GoPush/logger"
 	"context"
-	"fmt"
 	"net"
 	"time"
 )
@@ -51,14 +51,14 @@ func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, c
 	go func(ctx context.Context) {
 		t := time.NewTimer(time.Minute * 1)
 		defer t.Stop()
-		fmt.Println("start heartbeat check") //debug
+		logger.Debug("start heartbeat check") //debug
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-t.C:
-				fmt.Println("Heartbeat timeout 60s...")
+				logger.Warn("Heartbeat timeout 60s...")
 				errCh <- errs.HeartbeatTimeout
 				return
 			case <-pingCh:
@@ -88,7 +88,7 @@ Fatal:
 
 }
 func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
-	fmt.Println(err.Error())
+	logger.Error(err)
 	conn.close()
 	cancelFunc()
 }

@@ -3,6 +3,8 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
+	"sync"
 )
 
 const (
@@ -20,6 +22,8 @@ const (
 )
 
 var (
+	mu = sync.Mutex{}
+
 	red = func(s string) string {
 		return fmt.Sprintf("\x1b[%dm%s\x1b[0m", colorRed, s)
 	}
@@ -42,51 +46,74 @@ func init() {
 }
 
 func Errorf(format string, v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(magenta(errorPrefix))
-	log.Printf(format, v...)
+	log.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Error(v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(magenta(errorPrefix))
-	log.Println(v...)
+	log.Output(2, fmt.Sprintln(v...))
 }
 
 func Fatalf(format string, v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(red(fatalPrefix))
-	log.Printf(format, v...)
+	log.Output(2, fmt.Sprintf(format, v...))
+	os.Exit(1)
 }
 
 func Fatal(v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(red(fatalPrefix))
-	log.Println(v...)
+	log.Output(2, fmt.Sprintln(v...))
+	os.Exit(1)
 }
 
 func Warnf(format string, v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(yellow(warnPrefix))
-	log.Printf(format, v...)
+	log.Output(2, fmt.Sprintf(format, v...))
+
 }
 
 func Warn(v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(yellow(warnPrefix))
-	log.Println(v...)
+	log.Output(2, fmt.Sprintln(v...))
 }
 
 func Infof(format string, v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(green(infoPrefix))
-	log.Printf(format, v...)
+	log.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Info(v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(green(infoPrefix))
-	log.Println(v...)
+	log.Output(2, fmt.Sprintln(v...))
 }
 
 func Debugf(format string, v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(blue(debugPrefix))
-	log.Printf(format, v...)
+	log.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Debug(v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
 	log.SetPrefix(blue(debugPrefix))
-	log.Println(v...)
+	log.Output(2, fmt.Sprintln(v...))
 }

@@ -2,11 +2,9 @@ package cli
 
 import (
 	"GoPush/errs"
+	"GoPush/logger"
 	"context"
-	"fmt"
-	"log"
 	"net"
-	"os"
 	"time"
 )
 
@@ -62,11 +60,11 @@ func HeartbeatCheck(pushCli PushCli) {
 		case <-cli.ctx.Done():
 			return
 		case <-t.C:
-			fmt.Fprintf(os.Stderr, errs.HeartbeatTimeout.Error())
+			logger.Error(errs.HeartbeatTimeout.Error())
 			pushCli.Close()
 			return
 		case <-cli.pongCh:
-			log.Println("recv pong")
+			logger.Info("recv pong")
 			t.Reset(time.Second * 60)
 		}
 	}

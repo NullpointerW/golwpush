@@ -1,10 +1,9 @@
 package GoPush
 
 import (
+	"GoPush/logger"
 	"context"
-	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"time"
 )
@@ -59,14 +58,14 @@ func InitConn(tcpConn net.Conn) {
 	}(ctx)
 	length, err := tcpConn.Read(buf)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "read error:%v", err)
+		logger.Errorf("read error:%v", err)
 		cancel()
 		return
 	}
 	cancel()
 	id, convErr := strconv.ParseInt(string(buf[:length]), 10, 64)
 	if convErr != nil {
-		fmt.Fprintf(os.Stderr, "parse error:%v", convErr)
+		logger.Errorf("parse error:%v", convErr)
 		return
 	}
 	newClient(tcpConn, id)
