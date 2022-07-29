@@ -3,7 +3,6 @@ package main
 import (
 	"GoPush/cli"
 	"GoPush/logger"
-	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -34,7 +33,7 @@ func main() {
 	for {
 		l, err := pCli.Read(buff)
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 			pCli.Close()
 			return
 		}
