@@ -2,6 +2,7 @@ package GoPush
 
 import (
 	"GoPush/logger"
+	"GoPush/protocol"
 	"context"
 	"net"
 	"strconv"
@@ -56,12 +57,35 @@ func InitConn(tcpConn net.Conn) {
 			tcpConn.Close()
 		}
 	}(ctx)
-	length, err := tcpConn.Read(buf)
-	if err != nil {
+	var (
+		length = 0
+	)
+Loop:
+	for {
+		var (
+			err error
+		)
+		for {
+			var l int
+			l, err = tcpConn.Read(buf[length:])
+			length += l
+			if err != nil {
+				goto Fatal
+			}
+			if buf[length-1] == protocol.EndFlag {
+				break Loop
+			}
+			if length >= len(buf) {
+				goto Fatal
+			}
+		}
+	Fatal:
 		logger.Errorf("read error:%v", err)
 		cancel()
+		tcpConn.Close()
 		return
 	}
+
 	cancel()
 	id, convErr := strconv.ParseInt(string(buf[:length]), 10, 64)
 	if convErr != nil {

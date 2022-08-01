@@ -3,21 +3,33 @@ package GoPush
 import (
 	"GoPush/errs"
 	"GoPush/logger"
+	"GoPush/protocol"
 	"context"
 	"net"
 	"time"
 )
 
 type Conn struct {
-	Id      int64
-	tcpConn net.Conn
-	wch     chan<- string
-	Addr    string
-	errMsg  chan<- error
+	Id         int64
+	tcpConn    net.Conn
+	readBuf    []byte
+	readBufPtr int
+	wch        chan<- string
+	Addr       string
+	errMsg     chan<- error
 }
 
 func (conn *Conn) write(msg string) {
 	conn.wch <- msg
+}
+
+func (conn *Conn) read() (msg string, err error) {
+	length, TCPErr := conn.tcpConn.Read(conn.readBuf[conn.readBufPtr:])
+	if TCPErr != nil {
+		return msg, TCPErr
+	}
+	msg, conn.readBufPtr, err = protocol.Unpack(conn.readBuf[:length+conn.readBufPtr])
+	return
 }
 
 func (conn *Conn) close() {
@@ -37,13 +49,13 @@ func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, c
 			case <-ctx.Done():
 				return
 			default:
-				buf := make([]byte, 128)
-				length, err := tcpConn.Read(buf)
+				//buf := make([]byte, 128)
+				msg, err := conn.read()
 				if err != nil {
 					errCh <- err
 					return
 				}
-				pingCh <- string(buf[:length])
+				pingCh <- msg
 			}
 		}
 	}(ctx)
@@ -97,11 +109,13 @@ func newClient(tcpConn net.Conn, id int64) {
 	wch := make(chan string, 100)
 	errCh := make(chan error, 2)
 	conn := &Conn{
-		Id:      id,
-		tcpConn: tcpConn,
-		wch:     wch,
-		errMsg:  errCh,
-		Addr:    tcpConn.RemoteAddr().String(),
+		Id:         id,
+		tcpConn:    tcpConn,
+		readBuf:    make([]byte, 1024),
+		readBufPtr: 0,
+		wch:        wch,
+		errMsg:     errCh,
+		Addr:       tcpConn.RemoteAddr().String(),
 	}
 	go connHandle(wch, errCh, id, tcpConn, conn)
 	ConnAddCh <- conn

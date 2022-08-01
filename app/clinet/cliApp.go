@@ -16,12 +16,11 @@ func main() {
 	logger.Infof("connect to server %s\n", conn.RemoteAddr().String())
 
 	var (
-		id   = 114514
-		buff = make([]byte, 1024)
+		id = 114514
 	)
 	pCli, _ := cli.NewClient(conn, int64(id))
 	defer pCli.Close()
-	msg := []byte(strconv.Itoa(id))
+	msg := strconv.Itoa(id)
 	_, wErr := pCli.Write(msg)
 	if wErr != nil {
 		logger.Fatalf("write error: %v", wErr)
@@ -31,13 +30,12 @@ func main() {
 	go cli.HeartbeatCheck(pCli)
 
 	for {
-		l, err := pCli.Read(buff)
+		msg, err := pCli.Read()
 		if err != nil {
 			logger.Fatal(err)
 			pCli.Close()
 			return
 		}
-		msg := string(buff[:l])
 		if strings.EqualFold(msg, "pong") {
 			pCli.PongRecv()
 		} else {
