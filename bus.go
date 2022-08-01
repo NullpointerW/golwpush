@@ -1,6 +1,7 @@
 package GoPush
 
 import (
+	"GoPush/errs"
 	"GoPush/logger"
 	"GoPush/protocol"
 	"context"
@@ -34,6 +35,9 @@ func Handle() {
 				conns[content.Id].write(content.Msg)
 			}
 		case conn := <-connAddCh0:
+			if _, exist := conns[conn.Id]; exist {
+				conn.errMsg <- errs.NewDuplicateConnIdErr(conn.Id)
+			}
 			conns[conn.Id] = conn
 		case conn := <-connRmCh0:
 			delete(conns, conn.Id)

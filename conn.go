@@ -107,7 +107,7 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 
 func newClient(tcpConn net.Conn, id int64) {
 	wch := make(chan string, 100)
-	errCh := make(chan error, 2)
+	errCh := make(chan error, 3)
 	conn := &Conn{
 		Id:         id,
 		tcpConn:    tcpConn,
