@@ -33,8 +33,8 @@ func (conn *Conn) read() (msg string, err error) {
 }
 
 func (conn *Conn) close() {
-	close(conn.wch)
-	close(conn.errMsg)
+	//close(conn.wch)
+	//close(conn.errMsg)
 	conn.tcpConn.Close()
 	ConnRmCh <- conn
 }
@@ -53,6 +53,10 @@ func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, c
 				msg, err := conn.read()
 				if err != nil {
 					errCh <- err
+					//可能导致写入已关闭channel panic
+					//解决方法有两种：
+					//1.不关闭channel 由gc回收 连接过多时可能会导致效率下降
+					//2.使用mutex维护一个关闭状态
 					return
 				}
 				pingCh <- msg
@@ -68,6 +72,7 @@ func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, c
 		for {
 			select {
 			case <-ctx.Done():
+				logger.Debug("heartbeat check end") //debug
 				return
 			case <-t.C:
 				logger.Warn("Heartbeat timeout 60s...")
