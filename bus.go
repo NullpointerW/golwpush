@@ -87,7 +87,7 @@ Loop:
 	}
 
 	cancel()
-	id, convErr := strconv.ParseInt(string(buf[:length]), 10, 64)
+	id, convErr := strconv.ParseInt(string(buf[:length-1]), 10, 64)
 	if convErr != nil {
 		logger.Errorf("parse error:%v", convErr)
 		return

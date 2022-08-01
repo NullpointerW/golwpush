@@ -28,7 +28,7 @@ func (conn *Conn) read() (msg string, err error) {
 	if TCPErr != nil {
 		return msg, TCPErr
 	}
-	msg, conn.readBufPtr, err = protocol.Unpack(conn.readBuf[:length+conn.readBufPtr])
+	msg, conn.readBufPtr, err = protocol.Unpack(conn.readBuf[:length+conn.readBufPtr], conn.readBufPtr)
 	return
 }
 
@@ -87,7 +87,7 @@ func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, c
 	for {
 		select {
 		case msg := <-wch:
-			_, err = tcpConn.Write([]byte(msg))
+			_, err = tcpConn.Write(protocol.Pack(msg))
 			if err != nil {
 				goto Fatal
 			}

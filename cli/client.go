@@ -31,7 +31,7 @@ func (cli *client) Read() (msg string, err error) {
 	if TCPErr != nil {
 		return msg, TCPErr
 	}
-	msg, cli.readBufPtr, err = protocol.Unpack(cli.buffer[:length+cli.readBufPtr])
+	msg, cli.readBufPtr, err = protocol.Unpack(cli.buffer[:length+cli.readBufPtr], cli.readBufPtr)
 	return
 }
 
