@@ -6,7 +6,7 @@ const (
 	EndFlag byte = '|'
 )
 
-func Unpack(b []byte, readIdx int) (msg string, readSt int, err error) {
+func Unpack(b []byte, readIdx int) (msg string, readSt int, retry bool, err error) {
 
 	for i, v := range b {
 		if v == EndFlag {
@@ -20,9 +20,11 @@ func Unpack(b []byte, readIdx int) (msg string, readSt int, err error) {
 		}
 	}
 
-	if len(b) == 128 {
-		return msg, readIdx, errs.UnpackOutOfSize
+	if len(b) == 1024 {
+		err = errs.UnpackOutOfSize
+		return
 	}
 	readIdx += len(b)
+	retry = true
 	return
 }

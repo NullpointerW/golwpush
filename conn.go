@@ -28,7 +28,15 @@ func (conn *Conn) read() (msg string, err error) {
 	if TCPErr != nil {
 		return msg, TCPErr
 	}
-	msg, conn.readBufPtr, err = protocol.Unpack(conn.readBuf[:length+conn.readBufPtr], conn.readBufPtr)
+	var retry bool
+unpack:
+	msg, conn.readBufPtr, retry, err = protocol.Unpack(conn.readBuf[:length+conn.readBufPtr], conn.readBufPtr)
+	if retry {
+		goto unpack
+	}
+	if err != nil {
+		return msg, err
+	}
 	return
 }
 
@@ -49,14 +57,13 @@ func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, c
 			case <-ctx.Done():
 				return
 			default:
-				//buf := make([]byte, 128)
 				msg, err := conn.read()
 				if err != nil {
-					errCh <- err
 					//可能导致写入已关闭channel panic
 					//解决方法有两种：
 					//1.不关闭channel 由gc回收 连接过多时可能会导致效率下降
 					//2.使用mutex维护一个关闭状态
+					errCh <- err
 					return
 				}
 				pingCh <- msg
