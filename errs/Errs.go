@@ -9,6 +9,8 @@ var (
 	HeartbeatTimeout = errors.New("heartbeat timeout")
 
 	UnpackOutOfSize = errors.New("package out of  read buffer size")
+
+	SendUidTimeOut = errors.New("send uid timeout")
 )
 
 type duplicateConnIdErr struct {
@@ -21,6 +23,6 @@ func (e *duplicateConnIdErr) Error() string {
 
 func NewDuplicateConnIdErr(id int64) error {
 	err := new(duplicateConnIdErr)
-	err.s = fmt.Sprintf("duplicate connection id %d:conn already exisit", id)
+	err.s = fmt.Sprintf("duplicate connection id %d:already exisit", id)
 	return err
 }

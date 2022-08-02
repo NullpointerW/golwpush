@@ -25,7 +25,7 @@ func main() {
 	if wErr != nil {
 		logger.Fatalf("write error: %v", wErr)
 	}
-	logger.Infof("send id:%d  succeed \n", id)
+	logger.Debug("sendId:%d succeed \n", id)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 

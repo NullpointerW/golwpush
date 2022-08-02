@@ -12,14 +12,14 @@ import (
 func main() {
 	logger.Info("start pushServer")
 	go func() {
-		logger.Infof("正在启动http服务...")
+		logger.Infof("staring http server...")
 		mux := http.NewServeMux()
 		h := httpHandler.PushHandler
 		mux.Handle("/push", http.HandlerFunc(h.Push))
 		mux.Handle("/broadcast", http.HandlerFunc(h.Broadcast))
 		log.Fatal(http.ListenAndServe("localhost:8000", mux))
 	}()
-	logger.Infof("正在启动tcp服务...")
+	logger.Infof("staring tcp server...")
 	listener, err := net.Listen("tcp", "localhost:9000")
 	if err != nil {
 		logger.Fatal(err)

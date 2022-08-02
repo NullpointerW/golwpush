@@ -11,6 +11,10 @@ const (
 	KICK
 )
 
+var (
+	MaxLen = 1024
+)
+
 type Package struct {
 	Mode Type   `json:"mode"`
 	Data string `json:"data"`

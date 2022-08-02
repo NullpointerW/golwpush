@@ -3,6 +3,7 @@ package GoPush
 import (
 	"GoPush/errs"
 	"GoPush/logger"
+	"GoPush/pkg"
 	"GoPush/protocol"
 	"context"
 	"net"
@@ -123,7 +124,7 @@ func newClient(tcpConn net.Conn, id int64) {
 	conn := &Conn{
 		Id:         id,
 		tcpConn:    tcpConn,
-		readBuf:    make([]byte, 1024),
+		readBuf:    make([]byte, pkg.MaxLen),
 		readBufPtr: 0,
 		wch:        wch,
 		errMsg:     errCh,

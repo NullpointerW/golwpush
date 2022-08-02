@@ -3,6 +3,7 @@ package cli
 import (
 	"GoPush/errs"
 	"GoPush/logger"
+	"GoPush/pkg"
 	"GoPush/protocol"
 	"context"
 	"net"
@@ -118,7 +119,7 @@ func NewClient(conn net.Conn, id int64) (cli PushCli, cancelFunc context.CancelF
 	ctx, cancelFunc = context.WithCancel(context.Background())
 	cli = &client{
 		ctx:        ctx,
-		buffer:     make([]byte, 1024),
+		buffer:     make([]byte, pkg.MaxLen),
 		readBufPtr: 0,
 		id:         id,
 		tcpConn:    conn,

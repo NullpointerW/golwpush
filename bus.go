@@ -58,6 +58,7 @@ func InitConn(tcpConn net.Conn) {
 		select {
 		case <-ctx.Done():
 		case <-t.C:
+			logger.Error(errs.SendUidTimeOut)
 			tcpConn.Close()
 		}
 	}(ctx)
