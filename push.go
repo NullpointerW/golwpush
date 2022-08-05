@@ -1,10 +1,10 @@
 package GoPush
 
 type defaultPush struct {
-	banned map[int64]struct{}
+	banned map[uint64]struct{}
 }
 
-func (p defaultPush) Push(id int64, msg string) (err error) {
+func (p defaultPush) Push(id uint64, msg string) (err error) {
 	PushCh <- Content{Id: id, Msg: msg}
 	return
 }
@@ -19,7 +19,7 @@ var (
 )
 
 type SinglePush interface {
-	Push(int64, string) error
+	Push(uint64, string) error
 }
 type AllPush interface {
 	Broadcast(string) error

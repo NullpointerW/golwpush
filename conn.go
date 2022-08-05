@@ -11,7 +11,7 @@ import (
 )
 
 type Conn struct {
-	Id         int64
+	Id         uint64
 	tcpConn    net.Conn
 	readBuf    []byte
 	readBufPtr int
@@ -48,7 +48,7 @@ func (conn *Conn) close() {
 	ConnRmCh <- conn
 }
 
-func connHandle(wch chan string, errCh chan error, id int64, tcpConn net.Conn, conn *Conn) {
+func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
 
 	pingCh := make(chan string, 100)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -118,7 +118,7 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	cancelFunc()
 }
 
-func newClient(tcpConn net.Conn, id int64) {
+func newClient(tcpConn net.Conn, id uint64) {
 	wch := make(chan string, 100)
 	errCh := make(chan error, 3)
 	conn := &Conn{

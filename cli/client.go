@@ -22,7 +22,7 @@ type client struct {
 	cFunc      context.CancelFunc
 	buffer     []byte
 	readBufPtr int
-	id         int64
+	id         uint64
 	tcpConn    net.Conn
 	pongCh     chan struct{}
 }
@@ -114,7 +114,7 @@ func SendHeartbeat(pushCli PushCli) {
 	}
 }
 
-func NewClient(conn net.Conn, id int64) (cli PushCli, cancelFunc context.CancelFunc) {
+func NewClient(conn net.Conn, id uint64) (cli PushCli, cancelFunc context.CancelFunc) {
 	var ctx context.Context
 	ctx, cancelFunc = context.WithCancel(context.Background())
 	cli = &client{

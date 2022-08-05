@@ -35,11 +35,14 @@ func Unpack(b []byte, readIdx int) (msg string, readSt int, retry bool, err erro
 	return
 }
 
-func UnPackByteStream(conn net.Conn) (data []byte) {
+func UnPackByteStream(conn net.Conn) (data []byte, err error) {
 	h := make([]byte, heartLen)
-	io.ReadFull(conn, h)
+	_, err = io.ReadFull(conn, h)
+	if err != nil {
+		return
+	}
 	dataLen := binary.BigEndian.Uint16(h)
 	data = make([]byte, dataLen)
-	io.ReadFull(conn, data)
+	_, err = io.ReadFull(conn, data)
 	return
 }

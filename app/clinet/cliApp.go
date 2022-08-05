@@ -3,8 +3,9 @@ package main
 import (
 	"GoPush/cli"
 	"GoPush/logger"
+	"GoPush/protocol"
+	"encoding/binary"
 	"net"
-	"strconv"
 	"strings"
 )
 
@@ -18,14 +19,18 @@ func main() {
 	var (
 		id = 114514
 	)
-	pCli, _ := cli.NewClient(conn, int64(id))
+	pCli, _ := cli.NewClient(conn, uint64(id))
 	defer pCli.Close()
-	msg := strconv.Itoa(id)
-	_, wErr := pCli.Write(msg)
+	//msg := strconv.Itoa(id)
+	//_, wErr := pCli.Write(msg)
+	data := make([]byte, 8)
+	binary.BigEndian.PutUint64(data, uint64(id))
+	trans := protocol.PackByteStream(8, data)
+	_, wErr := conn.Write(trans)
 	if wErr != nil {
 		logger.Fatalf("write error: %v", wErr)
 	}
-	logger.Debug("sendId:%d succeed \n", id)
+	logger.Debugf("sendId:%d succeed \n", id)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 

@@ -19,7 +19,7 @@ type Handler struct {
 func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
 	idStr := req.URL.Query().Get("id")
-	idInt, _ := strconv.ParseInt(idStr, 10, 64)
+	idInt, _ := strconv.ParseUint(idStr, 10, 64)
 	err := httpPush.Adapter.Push(idInt, string(_msg))
 	if err != nil {
 		fmt.Fprintf(w, "%s\n", err)

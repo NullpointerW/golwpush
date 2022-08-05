@@ -21,7 +21,7 @@ func (e *duplicateConnIdErr) Error() string {
 	return e.s
 }
 
-func NewDuplicateConnIdErr(id int64) error {
+func NewDuplicateConnIdErr(id uint64) error {
 	err := new(duplicateConnIdErr)
 	err.s = fmt.Sprintf("duplicate connection id %d:already exisit", id)
 	return err
