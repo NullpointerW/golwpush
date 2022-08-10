@@ -5,6 +5,7 @@ import (
 	"GoPush/logger"
 	"GoPush/protocol"
 	"encoding/binary"
+	"math/rand"
 	"net"
 	"strings"
 )
@@ -17,7 +18,7 @@ func main() {
 	logger.Infof("connect to server %s\n", conn.RemoteAddr().String())
 
 	var (
-		id = 114514
+		id = rand.Intn(10000) //随机生成id
 	)
 	pCli, _ := cli.NewClient(conn, uint64(id))
 	defer pCli.Close()
