@@ -1,7 +1,9 @@
 package GoPush
 
-func broadcaster(msg string) {
+import "GoPush/pkg"
+
+func broadcaster(broadMsg *pkg.Package) {
 	for _, conn := range conns {
-		conn.write(msg)
+		conn.write(broadMsg)
 	}
 }

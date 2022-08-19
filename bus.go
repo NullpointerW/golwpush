@@ -51,7 +51,8 @@ func Handle() {
 		case conn := <-connRmCh0:
 			delete(conns, conn.Id)
 		case msg := <-broadcast0:
-			broadcaster(msg)
+			broadcaster(&pkg.Package{Mode: pkg.MSG,
+				Data: msg})
 		}
 	}
 }

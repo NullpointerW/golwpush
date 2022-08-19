@@ -9,8 +9,8 @@ func (p defaultPush) Push(id uint64, msg string) (err error) {
 	return
 }
 
-func (p defaultPush) Broadcast(msg string) (err error) {
-	Broadcast <- msg
+func (p defaultPush) Broadcast(broadMsg string) (err error) {
+	Broadcast <- broadMsg
 	return
 }
 
@@ -22,7 +22,7 @@ type SinglePush interface {
 	Push(uint64, string) error
 }
 type AllPush interface {
-	Broadcast(string) error
+	Broadcast(string2 string) error
 }
 
 type Adapter interface {

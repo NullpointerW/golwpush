@@ -91,7 +91,7 @@ func connHandle(wch chan *pkg.Package, errCh chan error, id uint64, tcpConn net.
 				errCh <- errs.HeartbeatTimeout
 				return
 			case <-pingCh:
-				wch <- &pkg.Package{Mode: pkg.Pong}
+				wch <- &pkg.Package{Mode: pkg.PONG}
 				t.Reset(time.Minute * 1)
 			}
 		}

@@ -112,7 +112,7 @@ func SendHeartbeat(pushCli PushCli) {
 	for {
 		select {
 		case <-t.C:
-			_, err := cli.Write(pkg.Pong)
+			_, err := cli.Write(pkg.Ping)
 			if err != nil {
 				logger.Error(err)
 				pushCli.Close()
