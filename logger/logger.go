@@ -14,15 +14,20 @@ const (
 	colorBlue    // 蓝
 	colorMagenta //	洋红
 
-	fatalPrefix = "[FATAL] "
-	errorPrefix = "[ERROR] "
-	warnPrefix  = "[WARN] "
-	infoPrefix  = "[INFO] "
-	debugPrefix = "[DEBUG] "
+	fatalPrefix       = "[FATAL] "
+	errorPrefix       = "[ERROR] "
+	warnPrefix        = "[WARN] "
+	infoPrefix        = "[INFO] "
+	debugPrefix       = "[DEBUG] "
+	Dev         Level = true
+	Prod        Level = !Dev
 )
 
+type Level bool
+
 var (
-	mu = sync.Mutex{}
+	Env = Dev
+	mu  = sync.Mutex{}
 
 	red = func(s string) string {
 		return fmt.Sprintf("\x1b[%dm%s\x1b[0m", colorRed, s)
@@ -107,13 +112,23 @@ func Info(v ...any) {
 func Debugf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(blue(debugPrefix))
-	log.Output(2, fmt.Sprintf(format, v...))
+	if Env {
+		log.SetPrefix(blue(debugPrefix))
+		log.Output(2, fmt.Sprintf(format, v...))
+	}
 }
 
 func Debug(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(blue(debugPrefix))
-	log.Output(2, fmt.Sprintln(v...))
+	if Env {
+		log.SetPrefix(blue(debugPrefix))
+		log.Output(2, fmt.Sprintln(v...))
+	}
+}
+
+func ModifyLv(lv Level) {
+	mu.Lock()
+	defer mu.Unlock()
+	Env = lv
 }

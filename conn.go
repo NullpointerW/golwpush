@@ -15,12 +15,12 @@ type Conn struct {
 	tcpConn    net.Conn
 	readBuf    []byte
 	readBufPtr int
-	wch        chan<- string
+	wch        chan<- *pkg.Package
 	Addr       string
 	errMsg     chan<- error
 }
 
-func (conn *Conn) write(msg string) {
+func (conn *Conn) write(msg *pkg.Package) {
 	conn.wch <- msg
 }
 
@@ -52,7 +52,7 @@ func (conn *Conn) close() {
 	ConnRmCh <- conn
 }
 
-func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
+func connHandle(wch chan *pkg.Package, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
 
 	pingCh := make(chan string, 100)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -91,7 +91,7 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 				errCh <- errs.HeartbeatTimeout
 				return
 			case <-pingCh:
-				wch <- "pong"
+				wch <- &pkg.Package{Mode: pkg.Pong}
 				t.Reset(time.Minute * 1)
 			}
 		}
@@ -104,7 +104,12 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 	for {
 		select {
 		case msg := <-wch:
-			_, err = tcpConn.Write(protocol.Pack(msg))
+			var strMsg string
+			strMsg, err = msg.ConvStr()
+			if err != nil {
+				goto Fatal
+			}
+			_, err = tcpConn.Write(protocol.Pack(strMsg))
 			if err != nil {
 				goto Fatal
 			}
@@ -118,7 +123,7 @@ Fatal:
 }
 func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	logger.Error(err)
-	if _, dupli := err.(*errs.DuplicateConnIdErr); dupli {
+	if _, duplicate := err.(*errs.DuplicateConnIdErr); duplicate {
 		clErr := conn.tcpConn.Close()
 		cancelFunc()
 		if clErr != nil {
@@ -131,7 +136,7 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 }
 
 func newClient(tcpConn net.Conn, id uint64) {
-	wch := make(chan string, 100)
+	wch := make(chan *pkg.Package, 100)
 	errCh := make(chan error, 3)
 	conn := &Conn{
 		Id:         id,

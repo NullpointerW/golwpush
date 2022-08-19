@@ -3,6 +3,7 @@ package GoPush
 import (
 	"GoPush/errs"
 	"GoPush/logger"
+	"GoPush/pkg"
 	"GoPush/protocol"
 	"context"
 	"encoding/binary"
@@ -13,6 +14,13 @@ import (
 type Content struct {
 	Id  uint64
 	Msg string
+}
+
+func (c Content) pkg() *pkg.Package {
+	return &pkg.Package{
+		Data: c.Msg,
+		Mode: pkg.MSG,
+	}
 }
 
 var (
@@ -32,7 +40,7 @@ func Handle() {
 		select {
 		case content := <-pushCh0:
 			if _, exist := conns[content.Id]; exist {
-				conns[content.Id].write(content.Msg)
+				conns[content.Id].write(content.pkg())
 			}
 		case conn := <-connAddCh0:
 			if _, exist := conns[conn.Id]; exist {

@@ -9,6 +9,10 @@ import (
 	"net/http"
 )
 
+func init() {
+	logger.ModifyLv(logger.Prod)
+}
+
 func main() {
 	logger.Info("start pushServer")
 	go func() {
