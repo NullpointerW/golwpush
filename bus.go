@@ -30,6 +30,8 @@ var (
 	ConnRmCh   chan<- *Conn     = connRmCh0
 	broadcast0 chan string      = make(chan string, 1024)
 	Broadcast  chan<- string    = broadcast0
+	multiPush0 chan Contents    = make(chan Contents, 1024)
+	MultiPush  chan<- Contents  = multiPush0
 	conns      map[uint64]*Conn = make(map[uint64]*Conn)
 	pushCh0    chan Content     = make(chan Content, 1024)
 	PushCh     chan<- Content   = pushCh0
@@ -53,6 +55,8 @@ func Handle() {
 		case msg := <-broadcast0:
 			broadcaster(&pkg.Package{Mode: pkg.MSG,
 				Data: msg})
+		case contents := <-multiPush0:
+			multiSend(contents.pkg(), contents.Ids, contents.res)
 		}
 	}
 }

@@ -46,7 +46,7 @@ func main() {
 			fatal(pkgErr, pCli)
 		}
 		switch tPkg.Mode {
-		case pkg.PING:
+		case pkg.PONG:
 			pCli.PongRecv()
 		case pkg.MSG:
 			logger.Infof(tPkg.Data)
