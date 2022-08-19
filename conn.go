@@ -117,6 +117,7 @@ Fatal:
 
 }
 func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
+	logger.Error(err)
 	if _, dupli := err.(*errs.DuplicateConnIdErr); dupli {
 		clErr := conn.tcpConn.Close()
 		if clErr != nil {
@@ -124,7 +125,6 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 		}
 		return
 	}
-	logger.Error(err)
 	conn.close()
 	cancelFunc()
 }
