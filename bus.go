@@ -37,6 +37,7 @@ func Handle() {
 		case conn := <-connAddCh0:
 			if _, exist := conns[conn.Id]; exist {
 				conn.errMsg <- errs.NewDuplicateConnIdErr(conn.Id)
+				continue
 			}
 			conns[conn.Id] = conn
 		case conn := <-connRmCh0:

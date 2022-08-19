@@ -44,7 +44,11 @@ unpack:
 func (conn *Conn) close() {
 	//close(conn.wch)
 	//close(conn.errMsg)
-	conn.tcpConn.Close()
+	logger.Debug("close conn" + conn.Addr)
+	err := conn.tcpConn.Close()
+	if err != nil {
+		logger.Error(err)
+	}
 	ConnRmCh <- conn
 }
 
@@ -113,6 +117,13 @@ Fatal:
 
 }
 func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
+	if _, dupli := err.(*errs.DuplicateConnIdErr); dupli {
+		clErr := conn.tcpConn.Close()
+		if clErr != nil {
+			logger.Error(clErr)
+		}
+		return
+	}
 	logger.Error(err)
 	conn.close()
 	cancelFunc()

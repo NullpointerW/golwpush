@@ -13,16 +13,16 @@ var (
 	SendUidTimeOut = errors.New("send uid timeout")
 )
 
-type duplicateConnIdErr struct {
+type DuplicateConnIdErr struct {
 	s string
 }
 
-func (e *duplicateConnIdErr) Error() string {
+func (e *DuplicateConnIdErr) Error() string {
 	return e.s
 }
 
 func NewDuplicateConnIdErr(id uint64) error {
-	err := new(duplicateConnIdErr)
+	err := new(DuplicateConnIdErr)
 	err.s = fmt.Sprintf("duplicate connection id %d:already exisit", id)
 	return err
 }
