@@ -5,7 +5,7 @@ import "GoPush/pkg"
 type Contents struct {
 	Ids []uint64 `json:"ids"`
 	Msg string   `json:"msg"`
-	Res chan uint
+	Res chan uint64
 }
 
 func (c Contents) pkg() *pkg.Package {
@@ -21,8 +21,8 @@ func broadcaster(broadMsg *pkg.Package) {
 	}
 }
 
-func multiSend(broadMsg *pkg.Package, ids []uint64, res chan uint) {
-	var success uint
+func multiSend(broadMsg *pkg.Package, ids []uint64, res chan uint64) {
+	var success uint64
 	for _, id := range ids {
 		if _, exist := conns[id]; exist {
 			conns[id].write(broadMsg)

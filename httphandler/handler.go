@@ -23,9 +23,9 @@ func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
 	idInt, _ := strconv.ParseUint(idStr, 10, 64)
 	err := httpPush.Adapter.Push(idInt, string(_msg))
 	if err != nil {
-		fmt.Fprintf(w, "%s\n", err)
+		RespSrvErr(w, err)
 	}
-	fmt.Fprintf(w, "ok")
+	RespOk(w, "ok")
 }
 
 func (httpPush Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
@@ -47,14 +47,16 @@ func (httpPush Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 	cts := &gopush.Contents{}
 	err := json.Unmarshal(jsBody, cts)
 	if err != nil {
-		w.WriteHeader(405)
+		w.WriteHeader(500)
 		fmt.Fprintf(w, "json unmarshal error")
 		return
 	}
-	httpPush.Adapter.MultiPush(*cts)
-	//err := httpPush.Adapter.Push(idInt, string(_msg))
+	cts.Res = make(chan uint64, 1)
+	err, ok := httpPush.Adapter.MultiPush(cts)
 	if err != nil {
-		fmt.Fprintf(w, "%s\n", err)
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "sever internal error %s", err)
+		return
 	}
-	fmt.Fprintf(w, "ok")
+	fmt.Fprintf(w, "%d", ok)
 }

@@ -8,9 +8,11 @@ import (
 var (
 	HeartbeatTimeout = errors.New("heartbeat timeout")
 
-	UnpackOutOfSize = errors.New("package out of  read buffer size")
+	UnpackOutOfSize = errors.New("package out of read buffer size")
 
 	SendUidTimeOut = errors.New("send uid timeout")
+
+	ServiceCallTimedOut = errors.New("service has not responded for a long time")
 )
 
 type DuplicateConnIdErr struct {
