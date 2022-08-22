@@ -12,7 +12,6 @@ const (
 	PONG
 	MSG
 	ERR
-	OFFLINE
 	ONLINE
 	KICK
 )

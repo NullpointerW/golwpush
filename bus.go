@@ -76,6 +76,7 @@ func InitConn(tcpConn net.Conn) {
 			logger.Fatal(errs.SendUidTimeOut)
 		}
 	}(ctx)
+	//接收客户端uid
 	data, err := protocol.UnPackByteStream(tcpConn)
 	if err != nil {
 		logger.Errorf("read error:%v", err)
@@ -112,7 +113,7 @@ func InitConn(tcpConn net.Conn) {
 	//		tcpConn.Close()
 	//		return
 	//	}
-	logger.Debugf("recv id:%d", id)
+	logger.Debugf("【login】recv uid:%d from %s ", id, tcpConn.RemoteAddr().String())
 	//cancel()
 	//id, convErr := strconv.ParseInt(string(buf[:length-1]), 10, 64)
 	//if convErr != nil {
