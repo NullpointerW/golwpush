@@ -2,7 +2,7 @@ package main
 
 import (
 	"GoPush"
-	"GoPush/httpHandler"
+	"GoPush/httphandler"
 	"GoPush/logger"
 	"log"
 	"net"
@@ -18,7 +18,7 @@ func main() {
 	go func() {
 		logger.Infof("staring http server...")
 		mux := http.NewServeMux()
-		h := httpHandler.PushHandler
+		h := httphandler.PushHandler
 		mux.Handle("/push", http.HandlerFunc(h.Push))
 		mux.Handle("/broadcast", http.HandlerFunc(h.Broadcast))
 		log.Fatal(http.ListenAndServe("localhost:8000", mux))
