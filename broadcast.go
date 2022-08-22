@@ -1,4 +1,4 @@
-package GoPush
+package gopush
 
 import "GoPush/pkg"
 

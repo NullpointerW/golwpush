@@ -10,11 +10,11 @@ import (
 )
 
 var PushHandler = Handler{
-	Adapter: GoPush.Default,
+	Adapter: gopush.Default,
 }
 
 type Handler struct {
-	GoPush.Adapter
+	gopush.Adapter
 }
 
 func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
@@ -44,7 +44,7 @@ func (httpPush Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	jsBody, _ := ioutil.ReadAll(req.Body)
-	cts := &GoPush.Contents{}
+	cts := &gopush.Contents{}
 	err := json.Unmarshal(jsBody, cts)
 	if err != nil {
 		w.WriteHeader(405)

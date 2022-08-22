@@ -1,4 +1,4 @@
-package GoPush
+package gopush
 
 type defaultPush struct {
 	banned map[uint64]struct{}

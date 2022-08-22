@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	go GoPush.Handle()
+	go gopush.Handle()
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -36,7 +36,7 @@ func main() {
 			continue
 		}
 
-		go GoPush.InitConn(conn)
+		go gopush.InitConn(conn)
 
 	}
 }
