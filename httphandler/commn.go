@@ -28,10 +28,10 @@ func respBadReq(w http.ResponseWriter, any interface{}) {
 func respMethodNA(w http.ResponseWriter, any interface{}) {
 	resp(MethodNotAllowed, w, any)
 }
-func RespUnauth(w http.ResponseWriter, any interface{}) {
+func respUnauth(w http.ResponseWriter, any interface{}) {
 	resp(Unauthorized, w, any)
 }
-func RespForbid(w http.ResponseWriter, any interface{}) {
+func respForbid(w http.ResponseWriter, any interface{}) {
 	resp(Forbidden, w, any)
 }
 
@@ -39,13 +39,18 @@ func resp(code statusCode, w http.ResponseWriter, any interface{}) {
 	w.WriteHeader(int(code))
 	switch v := any.(type) {
 	case uint:
+		fmt.Fprintf(w, "%d", v)
 	case uint64:
+		fmt.Fprintf(w, "%d", v)
 	case int64:
+		fmt.Fprintf(w, "%d", v)
 	case int:
 		fmt.Fprintf(w, "%d", v)
 	case bool:
 		fmt.Fprintf(w, "%t", v)
 	case error:
+		fmt.Fprintf(w, "%s", v)
+
 	case string:
 		fmt.Fprintf(w, "%s", v)
 	}

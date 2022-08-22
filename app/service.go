@@ -21,6 +21,8 @@ func main() {
 		h := httphandler.PushHandler
 		mux.Handle("/push", http.HandlerFunc(h.Push))
 		mux.Handle("/broadcast", http.HandlerFunc(h.Broadcast))
+		mux.Handle("/multiPush", http.HandlerFunc(h.MultiPush))
+
 		log.Fatal(http.ListenAndServe("localhost:8000", mux))
 	}()
 	logger.Infof("staring tcp server...")

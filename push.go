@@ -27,7 +27,6 @@ func (p defaultPush) MultiPush(cts *Contents) (err error, success uint64) {
 	case success = <-cts.Res:
 	case <-t.C:
 		err = errs.ServiceCallTimedOut
-
 	}
 	return
 }
