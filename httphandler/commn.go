@@ -16,19 +16,19 @@ const (
 	ServerError      statusCode = 500
 )
 
-func RespOk(w http.ResponseWriter, any interface{}) {
+func respOk(w http.ResponseWriter, any interface{}) {
 	resp(OK, w, any)
 }
-func RespSrvErr(w http.ResponseWriter, any interface{}) {
+func respSrvErr(w http.ResponseWriter, any interface{}) {
 	resp(ServerError, w, any)
 }
-func RespBadReq(w http.ResponseWriter, any interface{}) {
+func respBadReq(w http.ResponseWriter, any interface{}) {
 	resp(BadRequest, w, any)
 }
-func RespMethodNA(w http.ResponseWriter, any interface{}) {
+func respMethodNA(w http.ResponseWriter, any interface{}) {
 	resp(MethodNotAllowed, w, any)
 }
-func RespUauth(w http.ResponseWriter, any interface{}) {
+func RespUnauth(w http.ResponseWriter, any interface{}) {
 	resp(Unauthorized, w, any)
 }
 func RespForbid(w http.ResponseWriter, any interface{}) {

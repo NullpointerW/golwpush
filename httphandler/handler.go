@@ -3,7 +3,6 @@ package httphandler
 import (
 	"GoPush"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -23,40 +22,39 @@ func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
 	idInt, _ := strconv.ParseUint(idStr, 10, 64)
 	err := httpPush.Adapter.Push(idInt, string(_msg))
 	if err != nil {
-		RespSrvErr(w, err)
+		respSrvErr(w, err)
+		return
 	}
-	RespOk(w, "ok")
+	respOk(w, "ok")
 }
 
 func (httpPush Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
 	err := httpPush.Adapter.Broadcast(string(_msg))
 	if err != nil {
-		fmt.Fprintf(w, "%s\n", err)
+		respSrvErr(w, err)
+		return
 	}
-	fmt.Fprintf(w, "ok")
+	respOk(w, "ok")
 }
 
 func (httpPush Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		w.WriteHeader(405)
-		fmt.Fprintf(w, "method not allowed")
+		respMethodNA(w, "non-post method not allowed")
 		return
 	}
 	jsBody, _ := ioutil.ReadAll(req.Body)
 	cts := &gopush.Contents{}
 	err := json.Unmarshal(jsBody, cts)
 	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "json unmarshal error")
+		respBadReq(w, "json unmarshal error")
 		return
 	}
 	cts.Res = make(chan uint64, 1)
 	err, ok := httpPush.Adapter.MultiPush(cts)
 	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "sever internal error %s", err)
+		respSrvErr(w, err)
 		return
 	}
-	fmt.Fprintf(w, "%d", ok)
+	respOk(w, ok)
 }
