@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"runtime"
 	"strconv"
 	"testing"
+	"unsafe"
 )
 
 func Benchmark(b *testing.B) {
@@ -27,4 +29,9 @@ func Test(t *testing.T) {
 		})
 	}
 	_, _, _ = bufio.NewReader(os.Stdin).ReadLine()
+}
+
+func TestStr(t *testing.T) {
+	a := "void"
+	fmt.Printf("%p\n", (unsafe.Pointer)(&a))
 }

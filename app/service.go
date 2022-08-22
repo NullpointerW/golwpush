@@ -1,9 +1,9 @@
 package main
 
 import (
-	"GoPush"
-	"GoPush/httphandler"
-	"GoPush/logger"
+	"gopush"
+	"gopush/httphandler"
+	"gopush/logger"
 	"log"
 	"net"
 	"net/http"

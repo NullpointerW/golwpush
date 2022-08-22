@@ -1,6 +1,6 @@
 package gopush
 
-import "GoPush/pkg"
+import "gopush/pkg"
 
 type Contents struct {
 	Ids []uint64 `json:"ids"`

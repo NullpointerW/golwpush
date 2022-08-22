@@ -1,3 +1,3 @@
-module GoPush
+module gopush
 
 go 1.18

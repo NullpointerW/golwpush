@@ -38,19 +38,12 @@ func respForbid(w http.ResponseWriter, any interface{}) {
 func resp(code statusCode, w http.ResponseWriter, any interface{}) {
 	w.WriteHeader(int(code))
 	switch v := any.(type) {
-	case uint:
-		fmt.Fprintf(w, "%d", v)
-	case uint64:
-		fmt.Fprintf(w, "%d", v)
-	case int64:
-		fmt.Fprintf(w, "%d", v)
-	case int:
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		fmt.Fprintf(w, "%d", v)
 	case bool:
 		fmt.Fprintf(w, "%t", v)
 	case error:
-		fmt.Fprintf(w, "%s", v)
-
+		fmt.Fprintf(w, "error:%s", v)
 	case string:
 		fmt.Fprintf(w, "%s", v)
 	}

@@ -1,6 +1,9 @@
 package pkg
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"gopush/utils"
+)
 
 type Type uint8
 
@@ -30,7 +33,7 @@ var (
 
 func New(msg string) (*Package, error) {
 	pkg := &Package{}
-	err := json.Unmarshal([]byte(msg), pkg)
+	err := json.Unmarshal(utils.Scb(msg), pkg)
 	if err != nil {
 		return nil, err
 	}
@@ -42,5 +45,5 @@ func (p *Package) ConvStr() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(b), nil
+	return utils.Bcs(b), nil
 }

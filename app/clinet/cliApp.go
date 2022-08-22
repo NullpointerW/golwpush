@@ -1,11 +1,11 @@
 package main
 
 import (
-	"GoPush/cli"
-	"GoPush/logger"
-	"GoPush/pkg"
-	"GoPush/protocol"
 	"encoding/binary"
+	"gopush/cli"
+	"gopush/logger"
+	"gopush/pkg"
+	"gopush/protocol"
 	"math/rand"
 	"net"
 	"time"

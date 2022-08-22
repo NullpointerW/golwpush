@@ -1,11 +1,11 @@
 package gopush
 
 import (
-	"GoPush/errs"
-	"GoPush/logger"
-	"GoPush/pkg"
-	"GoPush/protocol"
 	"context"
+	"gopush/errs"
+	"gopush/logger"
+	"gopush/pkg"
+	"gopush/protocol"
 	"net"
 	"time"
 )
@@ -91,7 +91,7 @@ func connHandle(wch chan *pkg.Package, errCh chan error, id uint64, tcpConn net.
 				errCh <- errs.HeartbeatTimeout
 				return
 			case <-pingCh:
-				wch <- &pkg.Package{Mode: pkg.PONG}
+				wch <- pkg.Pong
 				t.Reset(time.Minute * 1)
 			}
 		}

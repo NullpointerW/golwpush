@@ -3,12 +3,13 @@ package protocol
 import (
 	"bytes"
 	"encoding/binary"
+	"gopush/utils"
 )
 
 var heartLen = 2
 
 func Pack(msg string) (b []byte) {
-	return []byte(msg + string(EndFlag))
+	return utils.Scb(msg + string(EndFlag))
 }
 
 func PackByteStream(contextLen uint16, b []byte) []byte {

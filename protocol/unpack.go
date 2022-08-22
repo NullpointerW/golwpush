@@ -1,9 +1,9 @@
 package protocol
 
 import (
-	"GoPush/errs"
-	"GoPush/pkg"
 	"encoding/binary"
+	"gopush/errs"
+	"gopush/pkg"
 	"io"
 	"net"
 )

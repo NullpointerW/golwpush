@@ -1,7 +1,7 @@
 package gopush
 
 import (
-	"GoPush/errs"
+	"gopush/errs"
 	"time"
 )
 

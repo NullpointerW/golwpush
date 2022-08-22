@@ -1,8 +1,9 @@
 package httphandler
 
 import (
-	"GoPush"
 	"encoding/json"
+	"gopush"
+	"gopush/utils"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -20,7 +21,7 @@ func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
 	idStr := req.URL.Query().Get("id")
 	idInt, _ := strconv.ParseUint(idStr, 10, 64)
-	err := httpPush.Adapter.Push(idInt, string(_msg))
+	err := httpPush.Adapter.Push(idInt, utils.Bcs(_msg))
 	if err != nil {
 		respSrvErr(w, err)
 		return
@@ -30,7 +31,7 @@ func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
 
 func (httpPush Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
-	err := httpPush.Adapter.Broadcast(string(_msg))
+	err := httpPush.Adapter.Broadcast(utils.Bcs(_msg))
 	if err != nil {
 		respSrvErr(w, err)
 		return
