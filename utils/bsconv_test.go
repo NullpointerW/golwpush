@@ -1,6 +1,9 @@
 package utils
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 var s = "adsfasdfadsfadsfasdfadfadfasdfasdfadsfasdfasdfasdfsadfas"
 
@@ -35,14 +38,27 @@ const concha byte = 'a'
 //	}
 //}
 
-func BenchmarkBcsChar(b *testing.B) {
+func BenchmarkBcsCharConst(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = string(concha)
 	}
 }
 
-func BenchmarkBcsCharNew(b *testing.B) {
+//func BenchmarkBcsCharNewConst(b *testing.B) {
+//	for i := 0; i < b.N; i++ {
+//		s := BcsChar(concha)
+//		fmt.Printf(s)
+//	}
+//}
+
+func BenchmarkBcsChar(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_ = BcsChar(concha)
+		fmt.Printf(string(cha))
 	}
 }
+
+//func BenchmarkBcsCharNew(b *testing.B) {
+//	for i := 0; i < b.N; i++ {
+//		_ = BcsChar(cha)
+//	}
+//}

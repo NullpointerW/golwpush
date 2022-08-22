@@ -16,9 +16,9 @@ func Bcs(b []byte) string {
 }
 
 // BcsChar can not use with operation '+' because it will cause unexpected fault address
-func BcsChar(b byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
+//func BcsChar(b byte) string {
+//	return *(*string)(unsafe.Pointer(&b))
+//}
 
 // Scb converts string to a byte slice without memory allocation.
 //
