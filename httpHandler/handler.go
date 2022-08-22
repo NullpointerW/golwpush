@@ -39,18 +39,19 @@ func (httpPush Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 
 func (httpPush Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		w.Header().Set("Status-Code", "405")
+		w.WriteHeader(405)
 		fmt.Fprintf(w, "method not allowed")
 		return
 	}
 	jsBody, _ := ioutil.ReadAll(req.Body)
-	cts := &GoPush.Content{}
+	cts := &GoPush.Contents{}
 	err := json.Unmarshal(jsBody, cts)
 	if err != nil {
-		w.Header().Set("Status-Code", "500")
+		w.WriteHeader(405)
 		fmt.Fprintf(w, "json unmarshal error")
 		return
 	}
+	httpPush.Adapter.MultiPush(*cts)
 	//err := httpPush.Adapter.Push(idInt, string(_msg))
 	if err != nil {
 		fmt.Fprintf(w, "%s\n", err)

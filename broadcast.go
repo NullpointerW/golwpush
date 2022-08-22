@@ -5,7 +5,7 @@ import "GoPush/pkg"
 type Contents struct {
 	Ids []uint64 `json:"ids"`
 	Msg string   `json:"msg"`
-	res chan uint
+	Res chan uint
 }
 
 func (c Contents) pkg() *pkg.Package {

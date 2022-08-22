@@ -30,9 +30,10 @@ func main() {
 	trans := protocol.PackByteStream(8, data)
 	_, wErr := conn.Write(trans)
 	if wErr != nil {
+		defer conn.Close()
 		logger.Fatalf("write error: %v", wErr)
 	}
-	logger.Debugf("sendId:%d succeed \n", id)
+	logger.Debugf("[login]sendId:%d succeed\n", id)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 
@@ -55,7 +56,6 @@ func main() {
 
 }
 func fatal(err error, pCli cli.PushCli) {
-	logger.Fatal(err)
 	pCli.Close()
-	return
+	logger.Fatal(err)
 }

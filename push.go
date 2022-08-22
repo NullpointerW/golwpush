@@ -14,6 +14,10 @@ func (p defaultPush) Broadcast(broadMsg string) (err error) {
 	return
 }
 
+func (p defaultPush) MultiPush(cts Contents) (err error, success uint) {
+	return
+}
+
 var (
 	Default Adapter = defaultPush{banned: nil}
 )
@@ -22,7 +26,8 @@ type SinglePush interface {
 	Push(uint64, string) error
 }
 type AllPush interface {
-	Broadcast(string2 string) error
+	Broadcast(string) error
+	MultiPush(cts Contents) (error, uint)
 }
 
 type Adapter interface {
