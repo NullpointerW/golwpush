@@ -113,7 +113,8 @@ func InitConn(tcpConn net.Conn) {
 	//		tcpConn.Close()
 	//		return
 	//	}
-	logger.Debugf("【login】recv uid:%d from %s ", id, tcpConn.RemoteAddr().String())
+	logger.PrintfWithAddr(logger.Cli|logger.Login, tcpConn.RemoteAddr(), "recv uid : %s", id)
+	//logger.Debugf("【login】recv uid:%d from %s ", id, tcpConn.RemoteAddr().String())
 	//cancel()
 	//id, convErr := strconv.ParseInt(string(buf[:length-1]), 10, 64)
 	//if convErr != nil {

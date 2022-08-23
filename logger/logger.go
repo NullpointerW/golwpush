@@ -22,23 +22,25 @@ const (
 	infoPrefix        = "[INFO] "
 	debugPrefix       = "[DEBUG] "
 	Dev         Level = true
-	Prod        Level = !Dev
+	Prod              = !Dev
 
-	ackPrefix  = "[ACK]"
-	pongPrefix = "[PONG]"
-	pingPrefix = "[PING]"
-	cliPrefix  = "[CLI]"
-	srvPrefix  = "[SRV]"
-	kickPrefix = "[KICK]"
-	addrPrefix = "[%s]"
+	ackPrefix   = "[ACK]"
+	pongPrefix  = "[PONG]"
+	pingPrefix  = "[PING]"
+	cliPrefix   = "[CLI]"
+	srvPrefix   = "[SRV]"
+	kickPrefix  = "[KICK]"
+	addrPrefix  = "[%s]"
+	loginPrefix = "[LOGIN]"
 
-	ACK  = uint8(0x1)
-	PING = ACK << 1
-	PONG = PING << 1
-	CLI  = PONG << 1
-	SRV  = CLI << 1
-	KICK = SRV << 1
-	ADDR = KICK << 1
+	Ack   = uint16(0x01)
+	Ping  = Ack << 1
+	Pong  = Ping << 1
+	Cli   = Pong << 1
+	Srv   = Cli << 1
+	Kick  = Srv << 1
+	Addr  = Kick << 1 //0x40
+	Login = Addr << 1
 )
 
 type Level bool
@@ -145,41 +147,44 @@ func Debug(v ...any) {
 	}
 }
 
-func PrintlnWithAddr(cFlag uint8, addr net.Addr, v ...any) {
-	customPrint(cFlag|ADDR, false, addr.String(), "%v", v...)
+func PrintlnWithAddr(cFlag uint16, addr net.Addr, v ...any) {
+	customPrint(cFlag|Addr, false, addr.String(), "%v", v...)
 }
-func Println(cFlag uint8, v ...any) {
-	customPrint(cFlag&^ADDR, false, "", "%v", v...)
+func Println(cFlag uint16, v ...any) {
+	customPrint(cFlag&^Addr, false, "", "%v", v...)
 }
-func PrintfWithAddr(cFlag uint8, addr net.Addr, format string, v ...any) {
-	customPrint(cFlag|ADDR, true, addr.String(), format, v...)
+func PrintfWithAddr(cFlag uint16, addr net.Addr, format string, v ...any) {
+	customPrint(cFlag|Addr, true, addr.String(), format, v...)
 }
-func Printf(cFlag uint8, format string, v ...any) {
-	customPrint(cFlag&^ADDR, true, "", format, v...)
+func Printf(cFlag uint16, format string, v ...any) {
+	customPrint(cFlag&^Addr, true, "", format, v...)
 }
-func customPrint(cFlag uint8, _fmt bool, addr, format string, v ...any) {
+func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	var prefix string
-	if cFlag&ACK != 0 {
+	if cFlag&Ack != 0 {
 		prefix += strings.TrimSpace(green(ackPrefix))
 	}
-	if cFlag&PING != 0 {
+	if cFlag&Ping != 0 {
 		prefix += strings.TrimSpace(green(pingPrefix))
 	}
-	if cFlag&PONG != 0 {
+	if cFlag&Pong != 0 {
 		prefix += strings.TrimSpace(green(pongPrefix))
 	}
-	if cFlag&CLI != 0 {
+	if cFlag&Cli != 0 {
 		prefix += strings.TrimSpace(blue(cliPrefix))
 	}
-	if cFlag&SRV != 0 {
+	if cFlag&Srv != 0 {
 		prefix += strings.TrimSpace(yellow(srvPrefix))
 	}
-	if cFlag&KICK != 0 {
+	if cFlag&Kick != 0 {
 		prefix += strings.TrimSpace(magenta(kickPrefix))
 	}
-	if cFlag&ADDR != 0 {
+	if cFlag&Login != 0 {
+		prefix += strings.TrimSpace(green(loginPrefix))
+	}
+	if cFlag&Addr != 0 {
 		prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, addr)))
 	}
 	log.SetPrefix(prefix)

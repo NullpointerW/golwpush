@@ -16,28 +16,28 @@ const (
 	ServerError      statusCode = 500
 )
 
-func respOk(w http.ResponseWriter, any interface{}) {
-	resp(OK, w, any)
+func respOk(w http.ResponseWriter, t any) {
+	resp(OK, w, t)
 }
-func respSrvErr(w http.ResponseWriter, any interface{}) {
-	resp(ServerError, w, any)
+func respSrvErr(w http.ResponseWriter, t any) {
+	resp(ServerError, w, t)
 }
-func respBadReq(w http.ResponseWriter, any interface{}) {
-	resp(BadRequest, w, any)
+func respBadReq(w http.ResponseWriter, t any) {
+	resp(BadRequest, w, t)
 }
-func respMethodNA(w http.ResponseWriter, any interface{}) {
-	resp(MethodNotAllowed, w, any)
+func respMethodNA(w http.ResponseWriter, t any) {
+	resp(MethodNotAllowed, w, t)
 }
-func respUnauth(w http.ResponseWriter, any interface{}) {
-	resp(Unauthorized, w, any)
+func respUnauth(w http.ResponseWriter, t any) {
+	resp(Unauthorized, w, t)
 }
-func respForbid(w http.ResponseWriter, any interface{}) {
-	resp(Forbidden, w, any)
+func respForbid(w http.ResponseWriter, t any) {
+	resp(Forbidden, w, t)
 }
 
-func resp(code statusCode, w http.ResponseWriter, any interface{}) {
+func resp(code statusCode, w http.ResponseWriter, t any) {
 	w.WriteHeader(int(code))
-	switch v := any.(type) {
+	switch v := t.(type) {
 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		fmt.Fprintf(w, "%d", v)
 	case bool:

@@ -1,6 +1,9 @@
 package logger
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 type addr struct {
 }
@@ -65,11 +68,14 @@ func TestError(t *testing.T) {
 
 func TestCustomPrint(t *testing.T) {
 	var _addr addr
-	PrintlnWithAddr(KICK|PING|CLI, _addr, "testing for 3")
-	Println(KICK|PING|CLI|ADDR, "testing for 3")
-	PrintfWithAddr(KICK|PING|CLI, _addr, "testing for %d", 3)
-	Printf(KICK|PING|CLI|ADDR, "testing for %d", 3)
-	//PrintlnWithAddr(KICK|PING|CLI|ADDR,nil , "testing")
+	PrintlnWithAddr(Kick|Ping|Cli, _addr, "testing for 3")
+	Println(Kick|Ping|Cli|Addr, "testing for 3")
+	PrintfWithAddr(Kick|Ping|Cli, _addr, "testing for %d", 3)
+	Printf(Kick|Ping|Cli|Addr, "testing for %d", 3)
+	PrintlnWithAddr(Kick|Ping|Cli|Addr, _addr, "testing")
+	fmt.Printf("%b\n", Addr)
+	fmt.Printf("%x\n", Addr)
+	fmt.Printf("%d\n", Addr)
 }
 
 func TestErrorf(t *testing.T) {
