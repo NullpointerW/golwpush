@@ -32,6 +32,7 @@ const (
 	kickPrefix  = "[KICK]"
 	addrPrefix  = "[%s]"
 	loginPrefix = "[LOGIN]"
+	msgPrefix   = "[MSG]"
 
 	Ack   = uint16(0x01)
 	Ping  = Ack << 1
@@ -41,6 +42,7 @@ const (
 	Kick  = Srv << 1
 	Addr  = Kick << 1 //0x40
 	Login = Addr << 1
+	Msg   = Login << 1
 )
 
 type Level bool
@@ -183,6 +185,9 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	}
 	if cFlag&Login != 0 {
 		prefix += strings.TrimSpace(green(loginPrefix))
+	}
+	if cFlag&Msg != 0 {
+		prefix += strings.TrimSpace(green(msgPrefix))
 	}
 	if cFlag&Addr != 0 {
 		prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, addr)))
