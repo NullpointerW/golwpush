@@ -2,6 +2,17 @@ package logger
 
 import "testing"
 
+type addr struct {
+}
+
+func (s addr) String() string {
+	return "192.168.1.30:2548"
+}
+
+func (s addr) Network() string {
+	return "192.168.1.30:2548"
+}
+
 func TestDebug(t *testing.T) {
 
 	tests := []string{
@@ -38,17 +49,27 @@ func TestError(t *testing.T) {
 	type args struct {
 		v []any
 	}
+
 	tests := []struct {
 		name string
 		args args
-	}{
-		// TODO: Add test cases.
-	}
+	}{{"w", args{
+		make([]any, 10, 11),
+	}}, {}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			Error(tt.args.v...)
 		})
 	}
+}
+
+func TestCustomPrint(t *testing.T) {
+	var _addr addr
+	PrintlnWithAddr(KICK|PING|CLI, _addr, "testing for 3")
+	Println(KICK|PING|CLI|ADDR, "testing for 3")
+	PrintfWithAddr(KICK|PING|CLI, _addr, "testing for %d", 3)
+	Printf(KICK|PING|CLI|ADDR, "testing for %d", 3)
+	//PrintlnWithAddr(KICK|PING|CLI|ADDR,nil , "testing")
 }
 
 func TestErrorf(t *testing.T) {

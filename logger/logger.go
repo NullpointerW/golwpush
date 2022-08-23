@@ -3,7 +3,9 @@ package logger
 import (
 	"fmt"
 	"log"
+	"net"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -21,6 +23,22 @@ const (
 	debugPrefix       = "[DEBUG] "
 	Dev         Level = true
 	Prod        Level = !Dev
+
+	ackPrefix  = "[ACK]"
+	pongPrefix = "[PONG]"
+	pingPrefix = "[PING]"
+	cliPrefix  = "[CLI]"
+	srvPrefix  = "[SRV]"
+	kickPrefix = "[KICK]"
+	addrPrefix = "[%s]"
+
+	ACK  = uint8(0x1)
+	PING = ACK << 1
+	PONG = PING << 1
+	CLI  = PONG << 1
+	SRV  = CLI << 1
+	KICK = SRV << 1
+	ADDR = KICK << 1
 )
 
 type Level bool
@@ -125,6 +143,52 @@ func Debug(v ...any) {
 		log.SetPrefix(blue(debugPrefix))
 		log.Output(2, fmt.Sprintln(v...))
 	}
+}
+
+func PrintlnWithAddr(cFlag uint8, addr net.Addr, v ...any) {
+	customPrint(cFlag|ADDR, false, addr.String(), "%v", v...)
+}
+func Println(cFlag uint8, v ...any) {
+	customPrint(cFlag&^ADDR, false, "", "%v", v...)
+}
+func PrintfWithAddr(cFlag uint8, addr net.Addr, format string, v ...any) {
+	customPrint(cFlag|ADDR, true, addr.String(), format, v...)
+}
+func Printf(cFlag uint8, format string, v ...any) {
+	customPrint(cFlag&^ADDR, true, "", format, v...)
+}
+func customPrint(cFlag uint8, _fmt bool, addr, format string, v ...any) {
+	mu.Lock()
+	defer mu.Unlock()
+	var prefix string
+	if cFlag&ACK != 0 {
+		prefix += strings.TrimSpace(green(ackPrefix))
+	}
+	if cFlag&PING != 0 {
+		prefix += strings.TrimSpace(green(pingPrefix))
+	}
+	if cFlag&PONG != 0 {
+		prefix += strings.TrimSpace(green(pongPrefix))
+	}
+	if cFlag&CLI != 0 {
+		prefix += strings.TrimSpace(blue(cliPrefix))
+	}
+	if cFlag&SRV != 0 {
+		prefix += strings.TrimSpace(yellow(srvPrefix))
+	}
+	if cFlag&KICK != 0 {
+		prefix += strings.TrimSpace(magenta(kickPrefix))
+	}
+	if cFlag&ADDR != 0 {
+		prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, addr)))
+	}
+	log.SetPrefix(prefix)
+	if _fmt {
+		log.Output(2, fmt.Sprintf(format, v...))
+		return
+	}
+	log.Output(2, fmt.Sprintln(v...))
+
 }
 
 func ModifyLv(lv Level) {
