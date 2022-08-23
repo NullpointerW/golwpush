@@ -84,7 +84,7 @@ func InitConn(tcpConn net.Conn) {
 		return
 	}
 	cancel()
-	id := binary.BigEndian.Uint64(data)
+	uid := binary.BigEndian.Uint64(data)
 	//	var (
 	//		length = 0
 	//	)
@@ -113,13 +113,13 @@ func InitConn(tcpConn net.Conn) {
 	//		tcpConn.Close()
 	//		return
 	//	}
-	logger.PrintfWithAddr(logger.Cli|logger.Login, tcpConn.RemoteAddr(), "recv uid : %s", id)
-	//logger.Debugf("【login】recv uid:%d from %s ", id, tcpConn.RemoteAddr().String())
+	logger.PrintfWithAddr(logger.Cli|logger.Login, tcpConn.RemoteAddr(), "recv uid : %d", uid)
+	//logger.Debugf("【login】recv uid:%d from %s ", uid, tcpConn.RemoteAddr().String())
 	//cancel()
-	//id, convErr := strconv.ParseInt(string(buf[:length-1]), 10, 64)
+	//uid, convErr := strconv.ParseInt(string(buf[:length-1]), 10, 64)
 	//if convErr != nil {
 	//	logger.Errorf("parse error:%v", convErr)
 	//	return
 	//}
-	newClient(tcpConn, id)
+	newClient(tcpConn, uid)
 }

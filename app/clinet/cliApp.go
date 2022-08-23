@@ -16,24 +16,26 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	logger.Infof("connect to server %s\n", conn.RemoteAddr().String())
+	//logger.Infof("connect to server %s\n", conn.RemoteAddr().String())
+	logger.PrintlnWithAddr(logger.Login|logger.Srv, conn.RemoteAddr(), "connected to server")
 	rand.Seed(time.Now().UnixNano())
 	var (
-		id = rand.Intn(10000) //随机生成id
+		uid = rand.Intn(10000) //随机生成id
 	)
-	pCli, _ := cli.NewClient(conn, uint64(id))
+	pCli, _ := cli.NewClient(conn, uint64(uid))
 	defer pCli.Close()
-	//msg := strconv.Itoa(id)
+	//msg := strconv.Itoa(uid)
 	//_, wErr := pCli.Write(msg)
 	data := make([]byte, 8)
-	binary.BigEndian.PutUint64(data, uint64(id))
+	binary.BigEndian.PutUint64(data, uint64(uid))
 	trans := protocol.PackByteStream(8, data)
 	_, wErr := conn.Write(trans)
 	if wErr != nil {
 		defer conn.Close()
 		logger.Fatalf("write error: %v", wErr)
 	}
-	logger.Debugf("[login]sendId:%d succeed\n", id)
+	//logger.Debugf("[login]sendId:%d succeed\n", uid)
+	logger.PrintfWithAddr(logger.Login|logger.Srv, conn.RemoteAddr(), "sendUid:%d succeed\n", uid)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 
