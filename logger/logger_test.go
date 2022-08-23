@@ -68,11 +68,11 @@ func TestError(t *testing.T) {
 
 func TestCustomPrint(t *testing.T) {
 	var _addr addr
-	PrintlnWithAddr(Kick|Ping|Cli|Msg, _addr, "testing for 3")
+	PrintlnWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for 3")
 	Println(Kick|Ping|Cli|Addr|Msg, "testing for 3")
-	PrintfWithAddr(Kick|Ping|Cli|Msg, _addr, "testing for %d", uint64(3))
-	Printf(Kick|Ping|Cli|Addr|Msg, "testing for %d", uint64(3))
-	PrintlnWithAddr(Kick|Ping|Cli|Addr|Msg, _addr, "testing")
+	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for %d", uint64(3))
+	Printf(Kick|Ping|Addr|Msg|Srv, "testing for %d", uint64(3))
+	PrintlnWithAddr(Kick|Ping|Cli|Addr|Msg|Srv, _addr, "testing")
 	fmt.Printf("%b\n", Addr)
 	fmt.Printf("%x\n", Addr)
 	fmt.Printf("%d\n", Addr)
