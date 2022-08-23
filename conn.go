@@ -76,6 +76,7 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 					errCh <- err
 					return
 				}
+				//TODO 支持读取更多的包类型
 				pingCh <- msg
 			}
 		}
