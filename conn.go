@@ -15,13 +15,18 @@ type Conn struct {
 	tcpConn    net.Conn
 	readBuf    []byte
 	readBufPtr int
-	wch        chan<- *pkg.Package
+	wch        chan<- string
 	Addr       string
 	errMsg     chan<- error
 }
 
 func (conn *Conn) write(msg *pkg.Package) {
-	conn.wch <- msg
+	marshaled, err := msg.Marshal()
+	if err != nil {
+		conn.errMsg <- err
+		return
+	}
+	conn.wch <- marshaled
 }
 
 func (conn *Conn) read() (msg string, err error) {
@@ -52,7 +57,7 @@ func (conn *Conn) close() {
 	ConnRmCh <- conn
 }
 
-func connHandle(wch chan *pkg.Package, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
+func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
 
 	pingCh := make(chan string, 100)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -79,19 +84,19 @@ func connHandle(wch chan *pkg.Package, errCh chan error, id uint64, tcpConn net.
 	go func(ctx context.Context) {
 		t := time.NewTimer(time.Minute * 1)
 		defer t.Stop()
-		logger.Debug("start heartbeat check") //debug
-
+		cliAddr := "[cli][" + tcpConn.RemoteAddr().String() + "] "
+		logger.Debug(cliAddr + "start heartbeat check") //debug
 		for {
 			select {
 			case <-ctx.Done():
-				logger.Debug("heartbeat check end") //debug
+				logger.Debug(cliAddr + "heartbeat check end") //debug
 				return
 			case <-t.C:
-				logger.Warn("Heartbeat timeout 60s...")
+				logger.Warn(cliAddr + "Heartbeat timeout 60s...")
 				errCh <- errs.HeartbeatTimeout
 				return
 			case <-pingCh:
-				wch <- pkg.Pong
+				wch <- pkg.PongMarshaled
 				t.Reset(time.Minute * 1)
 			}
 		}
@@ -104,12 +109,12 @@ func connHandle(wch chan *pkg.Package, errCh chan error, id uint64, tcpConn net.
 	for {
 		select {
 		case msg := <-wch:
-			var strMsg string
-			strMsg, err = msg.ConvStr()
+			//var strMsg string
+			//strMsg, err = msg.ConvStr()
 			if err != nil {
 				goto Fatal
 			}
-			_, err = tcpConn.Write(protocol.Pack(strMsg))
+			_, err = tcpConn.Write(protocol.Pack(msg))
 			if err != nil {
 				goto Fatal
 			}
@@ -136,7 +141,7 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 }
 
 func newClient(tcpConn net.Conn, id uint64) {
-	wch := make(chan *pkg.Package, 100)
+	wch := make(chan string, 100)
 	errCh := make(chan error, 3)
 	conn := &Conn{
 		Id:         id,

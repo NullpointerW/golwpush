@@ -12,7 +12,7 @@ import (
 
 type PushCli interface {
 	Read() (msg string, err error)
-	Write(p *pkg.Package) (length int, err error)
+	Write(p string) (length int, err error)
 	Close()
 	PongRecv()
 }
@@ -44,13 +44,12 @@ unpack:
 	return
 }
 
-func (cli *client) Write(p *pkg.Package) (length int, err error) {
+func (cli *client) Write(p string) (length int, err error) {
 	var b []byte
-	strMsg, err := p.ConvStr()
 	if err != nil {
 		goto fatal
 	}
-	b = protocol.Pack(strMsg)
+	b = protocol.Pack(p)
 	length, err = cli.tcpConn.Write(b)
 	if err != nil {
 		goto fatal
@@ -112,7 +111,7 @@ func SendHeartbeat(pushCli PushCli) {
 	for {
 		select {
 		case <-t.C:
-			_, err := cli.Write(pkg.Ping)
+			_, err := cli.Write(pkg.PingMarshaled)
 			if err != nil {
 				logger.Error(err)
 				pushCli.Close()

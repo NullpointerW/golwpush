@@ -26,8 +26,10 @@ type Package struct {
 }
 
 var (
-	Ping = &Package{Mode: PING}
-	Pong = &Package{Mode: PONG}
+	Ping             = &Package{Mode: PING}
+	PingMarshaled, _ = Ping.Marshal()
+	Pong             = &Package{Mode: PONG}
+	PongMarshaled, _ = Pong.Marshal()
 )
 
 func New(msg string) (*Package, error) {
@@ -39,7 +41,7 @@ func New(msg string) (*Package, error) {
 	return pkg, nil
 }
 
-func (p *Package) ConvStr() (string, error) {
+func (p *Package) Marshal() (string, error) {
 	b, err := json.Marshal(p)
 	if err != nil {
 		return "", err
