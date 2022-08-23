@@ -174,12 +174,7 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	if cFlag&Pong != 0 {
 		prefix += strings.TrimSpace(green(pongPrefix))
 	}
-	if cFlag&Cli != 0 {
-		prefix += strings.TrimSpace(blue(cliPrefix))
-	}
-	if cFlag&Srv != 0 {
-		prefix += strings.TrimSpace(yellow(srvPrefix))
-	}
+
 	if cFlag&Kick != 0 {
 		prefix += strings.TrimSpace(magenta(kickPrefix))
 	}
@@ -188,6 +183,13 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	}
 	if cFlag&Msg != 0 {
 		prefix += strings.TrimSpace(green(msgPrefix))
+	}
+	if cFlag&Cli != 0 {
+		cFlag = cFlag &^ Srv
+		prefix += strings.TrimSpace(blue(cliPrefix))
+	}
+	if cFlag&Srv != 0 {
+		prefix += strings.TrimSpace(yellow(srvPrefix))
 	}
 	if cFlag&Addr != 0 {
 		prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, addr)))
