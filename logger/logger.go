@@ -34,15 +34,17 @@ const (
 	loginPrefix = "[LOGIN]"
 	msgPrefix   = "[MSG]"
 
-	Ack   = uint16(0x01)
-	Ping  = Ack << 1
-	Pong  = Ping << 1
-	Cli   = Pong << 1
-	Srv   = Cli << 1
-	Kick  = Srv << 1
-	Addr  = Kick << 1 //0x40
-	Login = Addr << 1
-	Msg   = Login << 1
+	Ack        = uint16(0x01)
+	Ping       = Ack << 1
+	Pong       = Ping << 1
+	Cli        = Pong << 1
+	Srv        = Cli << 1
+	Kick       = Srv << 1
+	Addr       = Kick << 1 //0x40
+	Login      = Addr << 1
+	Msg        = Login << 1
+	PingOutput = Srv | Pong
+	MsgOutput  = Srv | Msg
 )
 
 type Level bool

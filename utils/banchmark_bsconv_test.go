@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -53,7 +52,7 @@ func BenchmarkBcsCharConst(b *testing.B) {
 
 func BenchmarkBcsChar(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		fmt.Printf(string(cha))
+		_ = string(cha)
 	}
 }
 

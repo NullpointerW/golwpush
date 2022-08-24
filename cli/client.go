@@ -90,7 +90,7 @@ func HeartbeatCheck(pushCli PushCli) {
 			pushCli.Close()
 			return
 		case <-cli.pongCh:
-			logger.Info("recv pong")
+			logger.PrintlnWithAddr(logger.PingOutput, cli.tcpConn.RemoteAddr(), "recv pong")
 			t.Reset(time.Second * 60)
 		}
 	}

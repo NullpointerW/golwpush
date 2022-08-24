@@ -52,7 +52,7 @@ func main() {
 		case pkg.PONG:
 			pCli.PongRecv()
 		case pkg.MSG:
-			logger.Infof(tPkg.Data)
+			logger.PrintlnWithAddr(logger.MsgOutput, conn.RemoteAddr(), tPkg.Data)
 		}
 	}
 
