@@ -17,7 +17,6 @@ import (
 
 func BenchmarkSyncMap(b *testing.B) {
 	var smap = sync.Map{}
-
 	for i := 0; i < 1000000; i++ {
 		smap.Store(i, i)
 	}
