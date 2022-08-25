@@ -5,6 +5,8 @@ import (
 	"unsafe"
 )
 
+const TimeParseLayout = "2006-01-02 15:04:05"
+
 // Bcs converts byte slice to a string without memory allocation.
 // See https://groups.google.com/forum/#!msg/Golang-Nuts/ENgbUzYvCuU/90yGx7GUAgAJ .
 //

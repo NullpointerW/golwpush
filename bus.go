@@ -7,6 +7,7 @@ import (
 	"gopush/logger"
 	"gopush/pkg"
 	"gopush/protocol"
+	"gopush/utils"
 	"net"
 	"time"
 )
@@ -50,8 +51,13 @@ func Handle() {
 				continue
 			}
 			conns[conn.Id] = conn
+			now := time.Now().Format(utils.TimeParseLayout)
+			storeConnNum(uint64(len(conns)))
+			connInfos[conn.Id] = ConnInfo{conn.Id, conn.tcpConn.RemoteAddr().String(), now}
 		case conn := <-connRmCh0:
 			delete(conns, conn.Id)
+			storeConnNum(uint64(len(conns)))
+			delete(connInfos, conn.Id)
 		case msg := <-broadcast0:
 			broadcaster(&pkg.Package{Mode: pkg.MSG,
 				Data: msg})
