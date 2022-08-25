@@ -6,6 +6,7 @@ import (
 	"gopush/logger"
 	"gopush/pkg"
 	"gopush/protocol"
+	"gopush/utils"
 	"net"
 	"time"
 )
@@ -58,7 +59,7 @@ func (conn *Conn) close() {
 }
 
 func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
-
+	pendingAck, _ := utils.NewChMap[string, context.CancelFunc](10000) //max 1000
 	pingCh := make(chan string, 100)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
@@ -77,7 +78,18 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 					return
 				}
 				//TODO 支持读取更多的包类型
-				pingCh <- msg
+				p, err := pkg.New(msg)
+				if err != nil {
+					errCh <- err
+				}
+
+				switch p.Mode {
+				case pkg.ACK:
+					pendingAck.RmCh <- p.Id
+				case pkg.PING:
+					pingCh <- msg
+				}
+
 			}
 		}
 	}(ctx)

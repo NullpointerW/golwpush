@@ -14,6 +14,7 @@ const (
 	ERR
 	ONLINE
 	KICK
+	ACK
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 )
 
 type Package struct {
+	Id   string `json:"id"`
 	Mode Type   `json:"mode"`
 	Data string `json:"data"`
 }

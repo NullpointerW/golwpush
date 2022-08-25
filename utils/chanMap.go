@@ -26,3 +26,11 @@ func (cMap ChanMap[K, V]) Rm(key K) {
 func (cMap ChanMap[K, V]) Len() int {
 	return len(cMap.map0)
 }
+func NewChMap[K comparable, V any](cap int) (ChanMap[K, V], map[K]V) {
+	innerMap := make(map[K]V, cap)
+	return ChanMap[K, V]{
+		Cap:  cap,
+		RmCh: make(chan K, cap),
+		map0: innerMap,
+	}, innerMap
+}
