@@ -22,7 +22,8 @@ type Conn struct {
 }
 
 func (conn *Conn) write(msg *pkg.Package) {
-	marshaled, err := msg.Marshal()
+	msg.Id = utils.GenerateId(conn.Id) //生成消息id
+	marshaled, err := msg.Marshal()    //避免在写goroutine中编码
 	if err != nil {
 		conn.errMsg <- err
 		return
@@ -82,7 +83,6 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 				if err != nil {
 					errCh <- err
 				}
-
 				switch p.Mode {
 				case pkg.ACK:
 					pendingAck.RmCh <- p.Id
