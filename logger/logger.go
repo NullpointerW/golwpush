@@ -165,7 +165,12 @@ func Printf(cFlag uint16, format string, v ...any) {
 }
 func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	mu.Lock()
-	defer mu.Unlock()
+	reFlag := log.Flags() & log.Lshortfile
+	defer func() {
+		log.SetFlags(log.Flags() | reFlag)
+		mu.Unlock()
+	}()
+	log.SetFlags(log.Flags() &^ log.Lshortfile)
 	var prefix string
 	if cFlag&Ack != 0 {
 		prefix += strings.TrimSpace(green(ackPrefix))

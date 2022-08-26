@@ -30,26 +30,26 @@ func TestSyncMap(t *testing.T) {
 }
 
 func TestChMap(t *testing.T) {
-	var cmap = ChanMap[int, int]{RmCh: make(chan int, 1000000)}
+	var cmap = ChanMap[int, int]{Del: make(chan int, 1000000)}
 
 	for i := 0; i < 1000000; i++ {
-		cmap.put(i, i)
+		cmap.Put(i, i)
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(1000000)
 	for i := 0; i < 1000000; i++ {
 		key := i
 		go func() {
-			cmap.Rm(key)
+			cmap.Del <- key
 			wg.Done()
 		}()
 	}
 	go func() {
 		wg.Wait()
-		close(cmap.RmCh)
+		close(cmap.Del)
 	}()
-	for k := range cmap.RmCh {
-		cmap.rm(k)
+	for k := range cmap.Del {
+		delete(cmap.map0, k)
 	}
 	fmt.Printf("chMapCount :%d\n", len(cmap.map0))
 }

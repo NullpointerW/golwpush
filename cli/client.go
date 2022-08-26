@@ -7,6 +7,7 @@ import (
 	"gopush/pkg"
 	"gopush/protocol"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -25,6 +26,7 @@ type client struct {
 	id         uint64
 	tcpConn    net.Conn
 	pongCh     chan struct{}
+	WMu        sync.Mutex
 }
 
 func (cli *client) Read() (msg string, err error) {
@@ -45,6 +47,8 @@ unpack:
 }
 
 func (cli *client) Write(p string) (length int, err error) {
+	cli.WMu.Lock()
+	defer cli.WMu.Unlock()
 	var b []byte
 	if err != nil {
 		goto fatal
@@ -111,7 +115,7 @@ func SendHeartbeat(pushCli PushCli) {
 	for {
 		select {
 		case <-t.C:
-			_, err := cli.Write(pkg.PingMarshaled)
+			_, err := cli.Write(pkg.PingMarshaled.Marshaled)
 			if err != nil {
 				logger.Error(err)
 				pushCli.Close()

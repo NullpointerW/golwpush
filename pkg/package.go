@@ -27,11 +27,17 @@ type Package struct {
 	Data string `json:"data"`
 }
 
+type SendMarshal struct {
+	MsgId     string
+	Marshaled string
+	Mode      Type
+}
+
 var (
 	Ping             = &Package{Mode: PING}
-	PingMarshaled, _ = Ping.Marshal()
+	PingMarshaled, _ = Ping.MarshalToSend()
 	Pong             = &Package{Mode: PONG}
-	PongMarshaled, _ = Pong.Marshal()
+	PongMarshaled, _ = Pong.MarshalToSend()
 )
 
 func New(msg string) (*Package, error) {
@@ -49,4 +55,14 @@ func (p *Package) Marshal() (string, error) {
 		return "", err
 	}
 	return utils.Bcs(b), nil
+}
+
+func (p *Package) MarshalToSend() (SendMarshal, error) {
+	conv := SendMarshal{Mode: p.Mode}
+	s, err := p.Marshal()
+	if err != nil {
+		return conv, err
+	}
+	conv.Marshaled = s
+	return conv, nil
 }

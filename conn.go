@@ -16,14 +16,19 @@ type Conn struct {
 	tcpConn    net.Conn
 	readBuf    []byte
 	readBufPtr int
-	wch        chan<- string
+	wch        chan<- pkg.SendMarshal
 	Addr       string
 	errMsg     chan<- error
 }
 
+type acklog struct {
+	ack context.CancelFunc
+	actualSendTime time.Time
+}
+
 func (conn *Conn) write(msg *pkg.Package) {
-	msg.Id = utils.GenerateId(conn.Id) //生成消息id
-	marshaled, err := msg.Marshal()    //避免在写goroutine中编码
+	msg.Id = utils.GenerateId(conn.Id)    //生成消息id
+	marshaled, err := msg.MarshalToSend() //避免在写goroutine中编码
 	if err != nil {
 		conn.errMsg <- err
 		return
@@ -59,11 +64,32 @@ func (conn *Conn) close() {
 	ConnRmCh <- conn
 }
 
-func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
-	pendingAck, _ := utils.NewChMap[string, context.CancelFunc](10000) //max 1000
-	pingCh := make(chan string, 100)
+func connHandle(wch chan pkg.SendMarshal, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
+	pendAck, pends := utils.NewChMap[string, context.CancelFunc](10000) //max 1000
+	pingCh := make(chan struct{}, 100)
 	ctx, cancel := context.WithCancel(context.Background())
+	readHandler := make(chan string, 1024)
+	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
 	go func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case unDecode := <-readHandler:
+				p, err := pkg.New(unDecode)
+				if err != nil {
+					errCh <- err
+				}
+				switch p.Mode {
+				case pkg.ACK:
+					pendAck.Del <- p.Id
+				case pkg.PING:
+					pingCh <- struct{}{}
+				}
+			}
+		}
+	}(ctx)
+	go func(ctx context.Context) { //readLoop
 		for {
 			select {
 			case <-ctx.Done():
@@ -78,18 +104,7 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 					errCh <- err
 					return
 				}
-				//TODO 支持读取更多的包类型
-				p, err := pkg.New(msg)
-				if err != nil {
-					errCh <- err
-				}
-				switch p.Mode {
-				case pkg.ACK:
-					pendingAck.RmCh <- p.Id
-				case pkg.PING:
-					pingCh <- msg
-				}
-
+				readHandler <- msg
 			}
 		}
 	}(ctx)
@@ -124,10 +139,17 @@ func connHandle(wch chan string, errCh chan error, id uint64, tcpConn net.Conn, 
 		case msg := <-wch:
 			//var strMsg string
 			//strMsg, err = msg.ConvStr()
-			if err != nil {
-				goto Fatal
+			//if err != nil {
+			//	goto Fatal
+			//}
+			if msg.Mode == pkg.MSG {
+				//TODO ACK
+				pending, ack := context.WithCancel(context.Background())
+				pends[]
+
+				go ackPipeline(pending, pends)
 			}
-			_, err = tcpConn.Write(protocol.Pack(msg))
+			_, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
 			if err != nil {
 				goto Fatal
 			}
@@ -152,10 +174,13 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	conn.close()
 	cancelFunc()
 }
+func ackPipeline[K comparable, V any](ctx context.Context, a utils.ChanMap[K, V]) {
+
+}
 
 func newClient(tcpConn net.Conn, id uint64) {
-	wch := make(chan string, 100)
-	errCh := make(chan error, 3)
+	wch := make(chan pkg.SendMarshal, 1024)
+	errCh := make(chan error, 5)
 	conn := &Conn{
 		Id:         id,
 		tcpConn:    tcpConn,
