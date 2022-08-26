@@ -13,6 +13,8 @@ var (
 	SendUidTimeOut = errors.New("send uid timeout")
 
 	ServiceCallTimedOut = errors.New("service has not responded for a long time")
+
+	AckBuffCapLimit = errors.New("ackBuffer capacity is full")
 )
 
 type DuplicateConnIdErr struct {

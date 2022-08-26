@@ -22,9 +22,12 @@ var (
 )
 
 type Package struct {
+	Uid  string `json:"uid"`
 	Id   string `json:"id"`
 	Mode Type   `json:"mode"`
-	Data string `json:"data"`
+	Data string `json:"data"` // ACK
+	//
+	//
 }
 
 type SendMarshal struct {

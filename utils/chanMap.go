@@ -55,7 +55,7 @@ func NewChMap[K comparable, V any](cap int) (ChanMap[K, V], map[K]V) {
 	innerMap := make(map[K]V, cap)
 	return ChanMap[K, V]{
 		Cap:  cap,
-		Del:  make(chan K, cap),
+		Del:  make(chan K, 2*cap), //避免阻塞
 		map0: innerMap,
 	}, innerMap
 }

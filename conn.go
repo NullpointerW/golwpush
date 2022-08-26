@@ -21,8 +21,8 @@ type Conn struct {
 	errMsg     chan<- error
 }
 
-type acklog struct {
-	ack context.CancelFunc
+type ackPeek struct {
+	ack            context.CancelFunc
 	actualSendTime time.Time
 }
 
@@ -64,31 +64,32 @@ func (conn *Conn) close() {
 	ConnRmCh <- conn
 }
 
-func connHandle(wch chan pkg.SendMarshal, errCh chan error, id uint64, tcpConn net.Conn, conn *Conn) {
-	pendAck, pends := utils.NewChMap[string, context.CancelFunc](10000) //max 1000
+func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn net.Conn, conn *Conn) {
+	ackBuf, ackBuf0 := utils.NewChMap[string, ackPeek](10000) //max 10000
 	pingCh := make(chan struct{}, 100)
 	ctx, cancel := context.WithCancel(context.Background())
-	readHandler := make(chan string, 1024)
+	rHandler := make(chan string, 1024)
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
 	go func(ctx context.Context) {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case unDecode := <-readHandler:
-				p, err := pkg.New(unDecode)
+			case unDec := <-rHandler:
+				p, err := pkg.New(unDec)
 				if err != nil {
 					errCh <- err
 				}
 				switch p.Mode {
 				case pkg.ACK:
-					pendAck.Del <- p.Id
+					ackBuf.Del <- p.Id
 				case pkg.PING:
 					pingCh <- struct{}{}
 				}
 			}
 		}
 	}(ctx)
+
 	go func(ctx context.Context) { //readLoop
 		for {
 			select {
@@ -104,7 +105,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, id uint64, tcpConn n
 					errCh <- err
 					return
 				}
-				readHandler <- msg
+				rHandler <- msg
 			}
 		}
 	}(ctx)
@@ -133,26 +134,39 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, id uint64, tcpConn n
 	var (
 		err error
 	)
-
+	//write loop
 	for {
 		select {
 		case msg := <-wch:
-			//var strMsg string
-			//strMsg, err = msg.ConvStr()
-			//if err != nil {
-			//	goto Fatal
-			//}
+
 			if msg.Mode == pkg.MSG {
 				//TODO ACK
 				pending, ack := context.WithCancel(context.Background())
-				pends[]
-
-				go ackPipeline(pending, pends)
+				//ackBuf0[msg.MsgId] = ackPeek{
+				//	ack:            ack,
+				//	actualSendTime: time.Now(),
+				//}
+				if ok := ackBuf.Put(msg.MsgId, ackPeek{
+					ack:            ack,
+					actualSendTime: time.Now(),
+				}); ok {
+					go ackPipeline(pending, ackBuf, msg.MsgId, msg)
+					continue
+				}
+				err = errs.AckBuffCapLimit
+				goto Fatal
 			}
 			_, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
 			if err != nil {
 				goto Fatal
 			}
+
+		case id := <-ackBuf.Del:
+			if peek, exist := ackBuf0[id]; exist {
+				peek.ack()
+				delete(ackBuf0, id)
+			}
+
 		case err = <-errCh:
 			goto Fatal
 		}
@@ -161,6 +175,7 @@ Fatal:
 	connFatal(err, conn, cancel)
 
 }
+
 func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	logger.Error(err)
 	if _, duplicate := err.(*errs.DuplicateConnIdErr); duplicate {
@@ -174,8 +189,17 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	conn.close()
 	cancelFunc()
 }
-func ackPipeline[K comparable, V any](ctx context.Context, a utils.ChanMap[K, V]) {
-
+func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal) {
+	t := time.NewTimer(time.Minute * 5)
+	defer t.Stop()
+	select {
+	case <-t.C:
+		pds.Del <- id
+	//TODO 消息持久化
+	//p
+	case <-ctx.Done():
+		pds.Del <- id
+	}
 }
 
 func newClient(tcpConn net.Conn, id uint64) {
