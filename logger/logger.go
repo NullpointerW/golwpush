@@ -173,6 +173,9 @@ func Printf(cFlag uint16, format string, v ...any) {
 }
 func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	mu.Lock()
+	if !Env && cFlag&L_Debug != 0 { //prod环境
+		return
+	}
 	reFlag := log.Flags() & log.Lshortfile
 	defer func() {
 		log.SetFlags(log.Flags() | reFlag)
