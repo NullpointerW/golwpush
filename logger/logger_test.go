@@ -73,6 +73,8 @@ func TestCustomPrint(t *testing.T) {
 	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for %d", uint64(3))
 	Printf(Kick|Ping|Addr|Msg|Srv, "testing for %d", uint64(3))
 	PrintlnWithAddr(L_Info|Kick|Ping|Cli|Addr|Msg|Srv, _addr, "testing")
+	PrintlnWithAddr(PingOutputErr|Cli, _addr, "testing")
+
 	fmt.Printf("%b\n", Addr)
 	fmt.Printf("%x\n", Addr)
 	fmt.Printf("%d\n", Addr)
