@@ -34,17 +34,25 @@ const (
 	loginPrefix = "[LOGIN]"
 	msgPrefix   = "[MSG]"
 
-	Ack        = uint16(0x01)
-	Ping       = Ack << 1
-	Pong       = Ping << 1
-	Cli        = Pong << 1
-	Srv        = Cli << 1
-	Kick       = Srv << 1
-	Addr       = Kick << 1 //0x40
-	Login      = Addr << 1
-	Msg        = Login << 1
-	PingOutput = Srv | Pong
-	MsgOutput  = Srv | Msg
+	Ack           = uint16(0x01)
+	Ping          = Ack << 1
+	Pong          = Ping << 1
+	Cli           = Pong << 1
+	Srv           = Cli << 1
+	Kick          = Srv << 1
+	Addr          = Kick << 1 //0x0040
+	Login         = Addr << 1
+	Msg           = Login << 1
+	L_Fatal       = Msg << 1 //0x0100
+	L_Err         = L_Fatal << 1
+	L_Warn        = L_Err << 1
+	L_Info        = L_Warn << 1
+	L_Debug       = L_Info << 1
+	PingOutput    = Srv | Pong
+	MsgOutput     = Srv | Msg
+	PingOutputErr = L_Err | PingOutput
+	MsgOutputErr  = L_Err | MsgOutput
+	L_Bs          = L_Fatal | L_Info | L_Err | L_Debug | L_Warn //0x1f00
 )
 
 type Level bool
@@ -172,6 +180,22 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	}()
 	log.SetFlags(log.Flags() &^ log.Lshortfile)
 	var prefix string
+	if lFlag := cFlag & L_Bs; lFlag != 0 {
+		switch lFlag {
+		case L_Fatal:
+			prefix += red(strings.TrimSuffix(fatalPrefix, " "))
+		case L_Err:
+			prefix += magenta(strings.TrimSuffix(errorPrefix, " "))
+		case L_Warn:
+			prefix += yellow(strings.TrimSuffix(warnPrefix, " "))
+		case L_Info:
+			prefix += green(strings.TrimSuffix(infoPrefix, " "))
+		case L_Debug:
+			prefix += blue(strings.TrimSuffix(debugPrefix, " "))
+		default:
+			prefix += green(strings.TrimSuffix(infoPrefix, " "))
+		}
+	}
 	if cFlag&Ack != 0 {
 		prefix += strings.TrimSpace(green(ackPrefix))
 	}

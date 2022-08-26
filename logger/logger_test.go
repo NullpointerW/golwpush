@@ -72,10 +72,21 @@ func TestCustomPrint(t *testing.T) {
 	Println(Kick|Ping|Cli|Addr|Msg, "testing for 3")
 	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for %d", uint64(3))
 	Printf(Kick|Ping|Addr|Msg|Srv, "testing for %d", uint64(3))
-	PrintlnWithAddr(Kick|Ping|Cli|Addr|Msg|Srv, _addr, "testing")
+	PrintlnWithAddr(L_Info|Kick|Ping|Cli|Addr|Msg|Srv, _addr, "testing")
 	fmt.Printf("%b\n", Addr)
 	fmt.Printf("%x\n", Addr)
 	fmt.Printf("%d\n", Addr)
+	fmt.Printf("%b\n", L_Fatal)
+}
+
+func TestConstVal(t *testing.T) {
+
+	//fmt.Printf("%b\n", Addr)
+	//fmt.Printf("%x\n", Addr)
+	//fmt.Printf("%d\n", Addr)
+	fmt.Printf("%x\n", L_Fatal)
+	fmt.Printf("%x\n", L_Fatal|L_Info|L_Err|L_Debug|L_Warn)
+
 }
 
 func TestErrorf(t *testing.T) {
