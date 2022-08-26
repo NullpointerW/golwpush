@@ -85,11 +85,13 @@ func InitConn(tcpConn net.Conn) {
 	//接收客户端uid
 	data, err := protocol.UnPackByteStream(tcpConn)
 	if err != nil {
-		logger.Errorf("read error:%v", err)
+		logger.PrintfWithAddr(logger.CliErr, tcpConn.RemoteAddr(), "read error:%v", err)
 		cancel()
 		return
 	}
+
 	cancel()
+
 	uid := binary.BigEndian.Uint64(data)
 	//	var (
 	//		length = 0

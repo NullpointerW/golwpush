@@ -73,7 +73,7 @@ func TestCustomPrint(t *testing.T) {
 	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for %d", uint64(3))
 	Printf(Kick|Ping|Addr|Msg|Srv, "testing for %d", uint64(3))
 	PrintlnWithAddr(L_Info|Kick|Ping|Cli|Addr|Msg|Srv, _addr, "testing")
-	PrintlnWithAddr(PingOutputErr|Cli, _addr, "testing")
+	PrintlnWithAddr(PingErrOutput|Cli, _addr, "testing")
 
 	fmt.Printf("%b\n", Addr)
 	fmt.Printf("%x\n", Addr)
@@ -85,9 +85,19 @@ func TestConstVal(t *testing.T) {
 
 	//fmt.Printf("%b\n", Addr)
 	//fmt.Printf("%x\n", Addr)
-	//fmt.Printf("%d\n", Addr)
+	fmt.Printf("%016b\n", HeartBeat|Srv)
+	fmt.Println(HeartBeat|Srv&HeartBeat != 0)
 	fmt.Printf("%x\n", L_Fatal)
 	fmt.Printf("%x\n", L_Fatal|L_Info|L_Err|L_Debug|L_Warn)
+
+}
+
+func TestCustomPrintf(t *testing.T) {
+	var _addr addr
+	ModifyLv(Prod)
+	//PrintlnWithAddr(L_Debug|Srv, _addr, "testing for 3")
+	PrintlnWithAddr(HeartBeat|Srv, _addr, "testing for 3")
+	//PrintlnWithAddr(HeartBeat|Pong|Srv, _addr, "testing for 3")
 
 }
 

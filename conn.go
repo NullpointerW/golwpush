@@ -17,7 +17,7 @@ type Conn struct {
 	readBuf    []byte
 	readBufPtr int
 	wch        chan<- pkg.SendMarshal
-	Addr       string
+	Addr       net.Addr
 	errMsg     chan<- error
 }
 
@@ -37,9 +37,9 @@ func (conn *Conn) write(msg *pkg.Package) {
 }
 
 func (conn *Conn) read() (msg string, err error) {
-	length, TCPErr := conn.tcpConn.Read(conn.readBuf[conn.readBufPtr:])
-	if TCPErr != nil {
-		return msg, TCPErr
+	length, tcpErr := conn.tcpConn.Read(conn.readBuf[conn.readBufPtr:])
+	if tcpErr != nil {
+		return msg, tcpErr
 	}
 	var retry bool
 unpack:
@@ -56,7 +56,7 @@ unpack:
 func (conn *Conn) close() {
 	//close(conn.wch)
 	//close(conn.errMsg)
-	logger.Debug("close conn" + conn.Addr)
+	logger.Debug("close conn" + conn.Addr.String())
 	err := conn.tcpConn.Close()
 	if err != nil {
 		logger.Error(err)
@@ -118,7 +118,8 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 		for {
 			select {
 			case <-ctx.Done():
-				logger.Debug(cliAddr + "heartbeat check end") //debug
+				logger.PrintlnWithAddr(logger.L_Debug|logger.PingOutput, conn.Addr,
+					"heartbeat check end") //debug
 				return
 			case <-t.C:
 				logger.Warn(cliAddr + "Heartbeat timeout 60s...")
@@ -212,7 +213,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 		readBufPtr: 0,
 		wch:        wch,
 		errMsg:     errCh,
-		Addr:       tcpConn.RemoteAddr().String(),
+		Addr:       tcpConn.RemoteAddr(),
 	}
 	go connHandle(wch, errCh, id, tcpConn, conn)
 	ConnAddCh <- conn

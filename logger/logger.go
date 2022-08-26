@@ -25,8 +25,9 @@ const (
 	Prod              = !Dev
 
 	ackPrefix   = "[ACK]"
-	pongPrefix  = "[PONG]"
-	pingPrefix  = "[PING]"
+	hbPrefix    = "[HEARTBEAT]"
+	pongPrefix  = "[HEARTBEAT|PONG]"
+	pingPrefix  = "[HEARTBEAT|PING]"
 	cliPrefix   = "[CLI]"
 	srvPrefix   = "[SRV]"
 	kickPrefix  = "[KICK]"
@@ -34,7 +35,8 @@ const (
 	loginPrefix = "[LOGIN]"
 	msgPrefix   = "[MSG]"
 
-	Ack           = uint16(0x01)
+	HeartBeat     = uint16(0x0001)
+	Ack           = HeartBeat << 1
 	Ping          = Ack << 1
 	Pong          = Ping << 1
 	Cli           = Pong << 1
@@ -48,10 +50,14 @@ const (
 	L_Warn        = L_Err << 1
 	L_Info        = L_Warn << 1
 	L_Debug       = L_Info << 1
-	PingOutput    = Srv | Pong
+	PingOutput    = Cli | Ping
+	PongOutput    = Srv | Pong
 	MsgOutput     = Srv | Msg
-	PingOutputErr = L_Err | PingOutput
-	MsgOutputErr  = L_Err | MsgOutput
+	PingErrOutput = L_Err | PingOutput
+	MsgErrOutput  = L_Err | MsgOutput
+	PongErrOutput = L_Err | PongOutput
+	SrvErr        = L_Err | Srv
+	CliErr        = L_Err | Cli
 	L_Bs          = L_Fatal | L_Info | L_Err | L_Debug | L_Warn //0x1f00
 )
 
@@ -173,7 +179,8 @@ func Printf(cFlag uint16, format string, v ...any) {
 }
 func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	mu.Lock()
-	if !Env && cFlag&L_Debug != 0 { //prod环境
+	if !Env && cFlag&L_Debug != 0 { //prod
+		mu.Unlock()
 		return
 	}
 	reFlag := log.Flags() & log.Lshortfile
@@ -201,6 +208,12 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	}
 	if cFlag&Ack != 0 {
 		prefix += strings.TrimSpace(green(ackPrefix))
+	}
+	if cFlag&(Ping|Pong) != 0 {
+		cFlag &^= HeartBeat
+	}
+	if cFlag&HeartBeat != 0 {
+		prefix += strings.TrimSpace(green(hbPrefix))
 	}
 	if cFlag&Ping != 0 {
 		prefix += strings.TrimSpace(green(pingPrefix))
