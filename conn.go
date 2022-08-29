@@ -17,13 +17,25 @@ type Conn struct {
 	readBuf    []byte
 	readBufPtr int
 	wch        chan<- pkg.SendMarshal
-	Addr       net.Addr
+	Addr       Addr
 	errMsg     chan<- error
 }
 
 type ackPeek struct {
 	ack            context.CancelFunc
 	actualSendTime time.Time
+}
+type Addr interface {
+	net.Addr
+	Uid() uint64
+}
+type ConnAddr struct {
+	net.Addr
+	uid uint64
+}
+
+func (c *ConnAddr) Uid() uint64 {
+	return c.uid
 }
 
 func (conn *Conn) write(msg *pkg.Package) {
@@ -113,16 +125,17 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	go func(ctx context.Context) {
 		t := time.NewTimer(time.Minute * 1)
 		defer t.Stop()
-		cliAddr := "[cli][" + tcpConn.RemoteAddr().String() + "] "
-		logger.Debug(cliAddr + "start heartbeat check") //debug
+		logger.PrintlnWithAddr(logger.L_Debug|logger.HeartBeat|logger.Cli, conn.Addr.Uid(), conn.Addr.String(),
+			"start heartbeat check") //debug
 		for {
 			select {
 			case <-ctx.Done():
-				logger.PrintlnWithAddr(logger.L_Debug|logger.PingOutput, conn.Addr,
+				logger.PrintlnWithAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
 					"heartbeat check end") //debug
 				return
 			case <-t.C:
-				logger.Warn(cliAddr + "Heartbeat timeout 60s...")
+				logger.PrintlnWithAddr(logger.L_Warn|logger.HeartBeat|logger.Cli, conn.Addr.Uid(), conn.Addr.String(),
+					"Heartbeat timeout 60s...") //debug
 				errCh <- errs.HeartbeatTimeout
 				return
 			case <-pingCh:
@@ -213,7 +226,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 		readBufPtr: 0,
 		wch:        wch,
 		errMsg:     errCh,
-		Addr:       tcpConn.RemoteAddr(),
+		Addr:       &ConnAddr{tcpConn.RemoteAddr(), id},
 	}
 	go connHandle(wch, errCh, id, tcpConn, conn)
 	ConnAddCh <- conn

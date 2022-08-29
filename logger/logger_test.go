@@ -5,16 +5,8 @@ import (
 	"testing"
 )
 
-type addr struct {
-}
-
-func (s addr) String() string {
-	return "192.168.1.30:2548"
-}
-
-func (s addr) Network() string {
-	return "192.168.1.30:2548"
-}
+var host = "192.168.199:3041"
+var uid uint64 = 114514
 
 func TestDebug(t *testing.T) {
 
@@ -67,17 +59,16 @@ func TestError(t *testing.T) {
 }
 
 func TestCustomPrint(t *testing.T) {
-	var _addr addr
-	PrintlnWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for 3")
-	Println(Kick|Ping|Cli|Addr|Msg, "testing for 3")
-	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, _addr, "testing for %d", uint64(3))
-	Printf(Kick|Ping|Addr|Msg|Srv, "testing for %d", uint64(3))
-	PrintlnWithAddr(L_Info|Kick|Ping|Cli|Addr|Msg|Srv, _addr, "testing")
-	PrintlnWithAddr(PingErrOutput|Cli, _addr, "testing")
+	//PrintlnWithAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
+	//Println(Kick|Ping|Cli|Host|Msg, 0, "", "testing for 3")
+	//PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
+	//Printf(Kick|Ping|Uid|Msg|Srv, uid, host, "testing for %d", 3)
+	//PrintfNonAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
+	PrintfNonUid(Kick|Ping|Addr|Msg|Srv, host, "testing for %d", 3)
 
-	fmt.Printf("%b\n", Addr)
-	fmt.Printf("%x\n", Addr)
-	fmt.Printf("%d\n", Addr)
+	//PrintlnWithAddr(L_Info|Kick|Ping|Cli|Host|Msg|Srv, 0, host, "testing")
+	//PrintlnWithAddr(PingErrOutput|Cli|Uid, uid, host, "testing")
+
 	fmt.Printf("%b\n", L_Fatal)
 }
 
@@ -93,10 +84,10 @@ func TestConstVal(t *testing.T) {
 }
 
 func TestCustomPrintf(t *testing.T) {
-	var _addr addr
+
 	ModifyLv(Prod)
 	//PrintlnWithAddr(L_Debug|Srv, _addr, "testing for 3")
-	PrintlnWithAddr(HeartBeat|Srv, _addr, "testing for 3")
+	PrintlnWithAddr(HeartBeat|Srv, uid, host, "testing for 3")
 	//PrintlnWithAddr(HeartBeat|Pong|Srv, _addr, "testing for 3")
 
 }

@@ -85,7 +85,7 @@ func InitConn(tcpConn net.Conn) {
 	//接收客户端uid
 	data, err := protocol.UnPackByteStream(tcpConn)
 	if err != nil {
-		logger.PrintfWithAddr(logger.CliErr, tcpConn.RemoteAddr(), "read error:%v", err)
+		logger.PrintfNonUid(logger.CliErr, tcpConn.RemoteAddr().String(), "read error:%v", err)
 		cancel()
 		return
 	}
@@ -93,41 +93,8 @@ func InitConn(tcpConn net.Conn) {
 	cancel()
 
 	uid := binary.BigEndian.Uint64(data)
-	//	var (
-	//		length = 0
-	//	)
-	//Loop:
-	//	for {
-	//		var (
-	//			err error
-	//		)
-	//		for {
-	//			var l int
-	//			l, err = tcpConn.Read(buf[length:])
-	//			length += l
-	//			if err != nil {
-	//				goto Fatal
-	//			}
-	//			if buf[length-1] == protocol.EndFlag {
-	//				break Loop
-	//			}
-	//			if length >= len(buf) {
-	//				goto Fatal
-	//			}
-	//		}
-	//	Fatal:
-	//		logger.Errorf("read error:%v", err)
-	//		cancel()
-	//		tcpConn.Close()
-	//		return
-	//	}
-	logger.PrintfWithAddr(logger.Cli|logger.Login, tcpConn.RemoteAddr(), "recv uid : %d", uid)
-	//logger.Debugf("【login】recv uid:%d from %s ", uid, tcpConn.RemoteAddr().String())
-	//cancel()
-	//uid, convErr := strconv.ParseInt(string(buf[:length-1]), 10, 64)
-	//if convErr != nil {
-	//	logger.Errorf("parse error:%v", convErr)
-	//	return
-	//}
+
+	logger.PrintfNonUid(logger.Cli|logger.Login|logger.Host, tcpConn.RemoteAddr().String(), "recv uid:%d", uid)
+
 	newClient(tcpConn, uid)
 }

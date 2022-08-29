@@ -3,7 +3,6 @@ package logger
 import (
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strings"
 	"sync"
@@ -24,14 +23,17 @@ const (
 	Dev         Level = true
 	Prod              = !Dev
 
-	ackPrefix   = "[ACK]"
-	hbPrefix    = "[HEARTBEAT]"
-	pongPrefix  = "[HEARTBEAT|PONG]"
-	pingPrefix  = "[HEARTBEAT|PING]"
-	cliPrefix   = "[CLI]"
-	srvPrefix   = "[SRV]"
-	kickPrefix  = "[KICK]"
-	addrPrefix  = "[%s]"
+	ackPrefix     = "[ACK]"
+	hbPrefix      = "[HEARTBEAT]"
+	pongPrefix    = "[HEARTBEAT|PONG]"
+	pingPrefix    = "[HEARTBEAT|PING]"
+	cliPrefix     = "[CLI]"
+	srvPrefix     = "[SRV]"
+	kickPrefix    = "[KICK]"
+	addrPrefix    = "[%s]"
+	uidPrefix     = "[UID:%d]"
+	uidHostPrefix = "[UID|HOST:%d|%s]"
+
 	loginPrefix = "[LOGIN]"
 	msgPrefix   = "[MSG]"
 
@@ -42,14 +44,16 @@ const (
 	Cli           = Pong << 1
 	Srv           = Cli << 1
 	Kick          = Srv << 1
-	Addr          = Kick << 1 //0x0040
-	Login         = Addr << 1
+	Host          = Kick << 1 //0x0040
+	Uid           = Host << 1
+	Login         = Uid << 1
 	Msg           = Login << 1
 	L_Fatal       = Msg << 1 //0x0100
 	L_Err         = L_Fatal << 1
 	L_Warn        = L_Err << 1
 	L_Info        = L_Warn << 1
 	L_Debug       = L_Info << 1
+	Addr          = Uid | Host
 	PingOutput    = Cli | Ping
 	PongOutput    = Srv | Pong
 	MsgOutput     = Srv | Msg
@@ -165,19 +169,54 @@ func Debug(v ...any) {
 	}
 }
 
-func PrintlnWithAddr(cFlag uint16, addr net.Addr, v ...any) {
-	customPrint(cFlag|Addr, false, addr.String(), "%v", v...)
+func PrintlnWithAddr(cFlag uint16, uid uint64, host string, v ...any) {
+	customPrint(cFlag|Addr, false, uid, host, "%v", v...)
 }
-func Println(cFlag uint16, v ...any) {
-	customPrint(cFlag&^Addr, false, "", "%v", v...)
+
+func PrintlnWithHost(cFlag uint16, uid uint64, host string, v ...any) {
+	customPrint(cFlag|Host, false, uid, host, "%v", v...)
 }
-func PrintfWithAddr(cFlag uint16, addr net.Addr, format string, v ...any) {
-	customPrint(cFlag|Addr, true, addr.String(), format, v...)
+
+func PrintlnNonHost(cFlag uint16, uid uint64, v ...any) {
+	customPrint(cFlag&^Host, false, uid, "", "%v", v...)
 }
-func Printf(cFlag uint16, format string, v ...any) {
-	customPrint(cFlag&^Addr, true, "", format, v...)
+
+func PrintlnNonAddr(cFlag uint16, v ...any) {
+	customPrint(cFlag&^Addr, false, 0, "", "%v", v...)
 }
-func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
+
+func PrintfWithHost(cFlag uint16, uid uint64, host string, format string, v ...any) {
+	customPrint(cFlag|Host, true, uid, host, format, v...)
+}
+
+func PrintfWithAddr(cFlag uint16, uid uint64, host string, format string, v ...any) {
+	customPrint(cFlag|Addr, true, uid, host, format, v...)
+}
+
+func PrintfNonHost(cFlag uint16, uid uint64, format string, v ...any) {
+	customPrint(cFlag&^Host, true, uid, "", format, v...)
+}
+
+func PrintfNonAddr(cFlag uint16, format string, v ...any) {
+	customPrint(cFlag&^Addr, true, 0, "", format, v...)
+}
+
+func PrintlnNonUid(cFlag uint16, host string, v ...any) {
+	customPrint(cFlag&^Uid, false, 0, host, "%v", v...)
+}
+
+func PrintfNonUid(cFlag uint16, host string, format string, v ...any) {
+	customPrint(cFlag&^Uid, true, 0, host, format, v...)
+}
+func Println(cFlag uint16, uid uint64, host string, v ...any) {
+	customPrint(cFlag, false, uid, host, "%v", v...)
+}
+
+func Printf(cFlag uint16, uid uint64, host string, format string, v ...any) {
+	customPrint(cFlag, true, uid, host, format, v...)
+}
+
+func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...any) {
 	mu.Lock()
 	if !Env && cFlag&L_Debug != 0 { //prod
 		mu.Unlock()
@@ -190,10 +229,12 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	}()
 	log.SetFlags(log.Flags() &^ log.Lshortfile)
 	var prefix string
+	var fatal = false
 	if lFlag := cFlag & L_Bs; lFlag != 0 {
 		switch lFlag {
 		case L_Fatal:
 			prefix += red(strings.TrimSuffix(fatalPrefix, " "))
+			fatal = true
 		case L_Err:
 			prefix += magenta(strings.TrimSuffix(errorPrefix, " "))
 		case L_Warn:
@@ -221,7 +262,6 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 	if cFlag&Pong != 0 {
 		prefix += strings.TrimSpace(green(pongPrefix))
 	}
-
 	if cFlag&Kick != 0 {
 		prefix += strings.TrimSpace(magenta(kickPrefix))
 	}
@@ -239,7 +279,13 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 		prefix += strings.TrimSpace(yellow(srvPrefix))
 	}
 	if cFlag&Addr != 0 {
-		prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, addr)))
+		if cFlag&Uid != 0 && cFlag&Host != 0 {
+			prefix += strings.TrimSpace(yellow(fmt.Sprintf(uidHostPrefix, uid, host)))
+		} else if cFlag&Uid != 0 {
+			prefix += strings.TrimSpace(yellow(fmt.Sprintf(uidPrefix, uid)))
+		} else {
+			prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, host)))
+		}
 	}
 	log.SetPrefix(prefix)
 	if _fmt {
@@ -247,6 +293,10 @@ func customPrint(cFlag uint16, _fmt bool, addr, format string, v ...any) {
 		return
 	}
 	log.Output(2, fmt.Sprintln(v...))
+
+	if fatal {
+		os.Exit(1)
+	}
 
 }
 

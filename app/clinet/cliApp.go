@@ -17,7 +17,7 @@ func main() {
 		logger.Fatal(err)
 	}
 	//logger.Infof("connect to server %s\n", conn.RemoteAddr().String())
-	logger.PrintlnWithAddr(logger.Login|logger.Srv, conn.RemoteAddr(), "connected to server")
+	logger.PrintlnNonUid(logger.Login|logger.Srv|logger.Host, conn.RemoteAddr().String(), "connected to server")
 	rand.Seed(time.Now().UnixNano())
 	var (
 		uid = rand.Intn(10000) //随机生成id
@@ -35,7 +35,7 @@ func main() {
 		logger.Fatalf("write error: %v", wErr)
 	}
 	//logger.Debugf("[login]sendId:%d succeed\n", uid)
-	logger.PrintfWithAddr(logger.Login|logger.Srv, conn.RemoteAddr(), "sendUid:%d succeed\n", uid)
+	logger.PrintfNonUid(logger.Login|logger.Srv|logger.Host, conn.RemoteAddr().String(), "sendUid:%d succeed\n", uid)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)
 
@@ -52,7 +52,7 @@ func main() {
 		case pkg.PONG:
 			pCli.PongRecv()
 		case pkg.MSG:
-			logger.PrintlnWithAddr(logger.MsgOutput, conn.RemoteAddr(), tPkg.Data)
+			logger.PrintlnNonUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), tPkg.Data)
 		}
 	}
 
