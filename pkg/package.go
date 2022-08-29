@@ -5,10 +5,10 @@ import (
 	"gopush/utils"
 )
 
-type Type uint8
+type Typ uint8
 
 const (
-	PING Type = iota
+	PING Typ = iota
 	PONG
 	MSG
 	ERR
@@ -24,7 +24,7 @@ var (
 type Package struct {
 	Uid  string `json:"uid"`
 	Id   string `json:"id"`
-	Mode Type   `json:"mode"`
+	Mode Typ    `json:"mode"`
 	Data string `json:"data"` // ACK
 	//
 	//
@@ -33,7 +33,7 @@ type Package struct {
 type SendMarshal struct {
 	MsgId     string
 	Marshaled string
-	Mode      Type
+	Mode      Typ
 }
 
 var (

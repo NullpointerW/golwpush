@@ -10,7 +10,7 @@ var (
 )
 
 type ConnInfo struct {
-	Id       uint64 `json:"id"`
+	UId      uint64 `json:"id"`
 	Addr     string `json:"addr"`
 	ConnTime string `json:"connectTime"`
 }

@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strconv"
 	"testing"
+	"time"
 	"unsafe"
 )
 
@@ -22,9 +23,11 @@ func Benchmark(b *testing.B) {
 }
 
 func Test(t *testing.T) {
-	for i := 0; i < 1000; i++ {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	for i := 0; i < 5; i++ {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			t.Parallel()
+			time.Sleep(5000 * time.Millisecond)
 			main()
 		})
 	}

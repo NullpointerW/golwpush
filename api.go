@@ -5,6 +5,19 @@ import (
 	"time"
 )
 
+type BizTyp int
+
+const (
+	Info BizTyp = iota
+	Kick
+)
+
+type BizReq struct {
+	Res chan any
+	Uid uint64
+	Typ BizTyp
+}
+
 type defaultPush struct {
 	banned map[uint64]struct{}
 }
@@ -30,6 +43,13 @@ func (p defaultPush) MultiPush(cts *Contents) (err error, success uint64) {
 	}
 	return
 }
+func (p defaultPush) Count() uint64 {
+	return LoadConnNum()
+}
+
+func (p defaultPush) Info(uid uint64) (ConnInfo, error) {
+	return ConnInfo{}, nil
+}
 
 var (
 	Default Adapter = defaultPush{banned: nil}
@@ -43,7 +63,13 @@ type AllPush interface {
 	MultiPush(cts *Contents) (error, uint64)
 }
 
+type ConnManger interface {
+	Count() uint64
+	Info(uid uint64) (ConnInfo, error)
+}
+
 type Adapter interface {
 	SinglePush
 	AllPush
+	ConnManger
 }
