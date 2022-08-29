@@ -29,6 +29,8 @@ type client struct {
 	WMu        sync.Mutex
 }
 
+var pongRecv = &sync.Once{}
+
 func (cli *client) Read() (msg string, err error) {
 	length, TCPErr := cli.tcpConn.Read(cli.buffer[cli.readBufPtr:])
 	if TCPErr != nil {
@@ -94,7 +96,11 @@ func HeartbeatCheck(pushCli PushCli) {
 			pushCli.Close()
 			return
 		case <-cli.pongCh:
-			logger.PrintfNonUid(logger.PingOutput|logger.Host, cli.tcpConn.RemoteAddr().String(), "recv pong")
+			pongRecv.Do(
+				func() {
+					logger.PrintfNonUid(logger.PingOutput|logger.Host, cli.tcpConn.RemoteAddr().String(), "recved pong")
+				})
+
 			t.Reset(time.Second * 60)
 		}
 	}

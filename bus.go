@@ -59,6 +59,7 @@ func Handle() {
 			storeConnNum(uint64(len(conns)))
 			delete(connInfos, conn.Id)
 		case msg := <-broadcast0:
+			//logger.Debug(len(conns))
 			broadcaster(&pkg.Package{Mode: pkg.MSG,
 				Data: msg})
 		case contents := <-multiPushCh0:

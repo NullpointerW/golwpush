@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"gopush/cli"
 	"gopush/logger"
 	"gopush/pkg"
 	"gopush/protocol"
+	"gopush/utils"
 	"math/rand"
 	"net"
 	"time"
@@ -53,6 +55,9 @@ func main() {
 			pCli.PongRecv()
 		case pkg.MSG:
 			logger.PrintlnNonUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), tPkg.Data)
+			recvTime := time.Now().Format(utils.TimeParseLayout)
+			raw, _ := json.Marshal(&pkg.Package{Mode: pkg.ACK, Id: tPkg.Id, Data: recvTime}) //ack 确认
+			pCli.Write(utils.Bcs(raw))
 		}
 	}
 

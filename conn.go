@@ -95,6 +95,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 				switch p.Mode {
 				case pkg.ACK:
 					ackBuf.Del <- p.Id
+					logger.Infof("ack from cli %s,msg id:%s", conn.Addr.String(), p.Id)
 				case pkg.PING:
 					pingCh <- struct{}{}
 				}
@@ -152,7 +153,6 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	for {
 		select {
 		case msg := <-wch:
-
 			if msg.Mode == pkg.MSG {
 				//TODO ACK
 				pending, ack := context.WithCancel(context.Background())
@@ -165,10 +165,11 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 					actualSendTime: time.Now(),
 				}); ok {
 					go ackPipeline(pending, ackBuf, msg.MsgId, msg)
-					continue
+					//continue
+				} else {
+					err = errs.AckBuffCapLimit
+					goto Fatal
 				}
-				err = errs.AckBuffCapLimit
-				goto Fatal
 			}
 			_, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
 			if err != nil {
@@ -204,13 +205,14 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	cancelFunc()
 }
 func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal) {
-	t := time.NewTimer(time.Minute * 5)
+	t := time.NewTimer(time.Second * 30)
 	defer t.Stop()
 	select {
 	case <-t.C:
 		pds.Del <- id
-	//TODO 消息持久化
-	//p
+		//TODO 消息持久化
+		//p
+		logger.Warnf("ack time out,msg id:%s", p.MsgId)
 	case <-ctx.Done():
 		pds.Del <- id
 	}

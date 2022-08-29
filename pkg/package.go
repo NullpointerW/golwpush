@@ -67,5 +67,6 @@ func (p *Package) MarshalToSend() (SendMarshal, error) {
 		return conv, err
 	}
 	conv.Marshaled = s
+	conv.MsgId = p.Id
 	return conv, nil
 }
