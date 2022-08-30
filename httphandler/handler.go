@@ -2,11 +2,13 @@ package httphandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"gopush"
 	"gopush/utils"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 var PushHandler = Handler{
@@ -17,11 +19,11 @@ type Handler struct {
 	gopush.Adapter
 }
 
-func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
+func (h Handler) Push(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
 	idStr := req.URL.Query().Get("id")
-	idInt, _ := strconv.ParseUint(idStr, 10, 64)
-	err := httpPush.Adapter.Push(idInt, utils.Bcs(_msg))
+	uid, _ := strconv.ParseUint(idStr, 10, 64)
+	err := h.Adapter.Push(uid, utils.Bcs(_msg))
 	if err != nil {
 		respSrvErr(w, err)
 		return
@@ -29,9 +31,9 @@ func (httpPush Handler) Push(w http.ResponseWriter, req *http.Request) {
 	respOk(w, "ok")
 }
 
-func (httpPush Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
+func (h Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
-	err := httpPush.Adapter.Broadcast(utils.Bcs(_msg))
+	err := h.Adapter.Broadcast(utils.Bcs(_msg))
 	if err != nil {
 		respSrvErr(w, err)
 		return
@@ -39,7 +41,7 @@ func (httpPush Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 	respOk(w, "ok")
 }
 
-func (httpPush Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
+func (h Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		respMethodNA(w, "non-post method not allowed")
 		return
@@ -52,10 +54,33 @@ func (httpPush Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	cts.Res = make(chan uint64, 1)
-	err, ok := httpPush.Adapter.MultiPush(cts)
+	err, ok := h.Adapter.MultiPush(cts)
 	if err != nil {
 		respSrvErr(w, err)
 		return
 	}
 	respOk(w, ok)
+}
+
+func (h Handler) Count(w http.ResponseWriter, req *http.Request) {
+	c := h.Adapter.Count()
+	respOk(w, c)
+}
+
+func (h Handler) Info(w http.ResponseWriter, req *http.Request) {
+	idStr := req.URL.Query().Get("id")
+	uid, _ := strconv.ParseUint(idStr, 10, 64)
+	res := make(chan any, 1)
+	i, err := h.Adapter.Info(gopush.BizReq{Res: res, Uid: uid, Typ: gopush.Info})
+	if err != nil {
+		respSrvErr(w, err)
+		return
+	}
+	if i == nil {
+		respOk(w, fmt.Sprintf("uid :%d offline [%s]", uid, time.Now().Format(utils.TimeParseLayout)))
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	j, _ := json.Marshal(i)
+	respOk(w, utils.Bcs(j))
 }

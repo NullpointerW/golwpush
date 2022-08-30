@@ -36,6 +36,8 @@ var (
 	conns        map[uint64]*Conn = make(map[uint64]*Conn)
 	pushCh0      chan Content     = make(chan Content, 1024)
 	PushCh       chan<- Content   = pushCh0
+	bizCh0       chan BizReq      = make(chan BizReq, 1024)
+	BizCh        chan<- BizReq    = bizCh0
 )
 
 func Handle() {
@@ -64,6 +66,17 @@ func Handle() {
 				Data: msg})
 		case contents := <-multiPushCh0:
 			multiSend(contents.pkg(), contents.Ids, contents.Res)
+		case req := <-bizCh0:
+			switch req.Typ {
+			case Info:
+				if info, exist := connInfos[req.Uid]; exist {
+					req.Res <- info
+				} else {
+					req.Res <- nil
+				}
+			case Kick:
+				//TODO
+			}
 		}
 	}
 }

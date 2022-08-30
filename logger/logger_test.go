@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -59,13 +60,13 @@ func TestError(t *testing.T) {
 }
 
 func TestCustomPrint(t *testing.T) {
-	//PrintlnWithAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
-	//Println(Kick|Ping|Cli|Host|Msg, 0, "", "testing for 3")
-	//PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
-	//Printf(Kick|Ping|Uid|Msg|Srv, uid, host, "testing for %d", 3)
-	//PrintfNonAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
+	PrintlnWithAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
+	Println(Kick|Ping|Cli|Host|Msg, 0, "", "testing for 3")
+	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
+	Printf(Kick|Ping|Uid|Msg|Srv, uid, host, "testing for %d", 3)
+	PrintfNonAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
 	PrintfNonUid(Kick|Ping|Addr|Msg|Srv, host, "testing for %d", 3)
-
+	log.Print("log")
 	//PrintlnWithAddr(L_Info|Kick|Ping|Cli|Host|Msg|Srv, 0, host, "testing")
 	//PrintlnWithAddr(PingErrOutput|Cli|Uid, uid, host, "testing")
 

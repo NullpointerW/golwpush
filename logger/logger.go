@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -68,9 +69,9 @@ const (
 type Level bool
 
 var (
+	std = log.New(io.MultiWriter(os.Stderr, createFile()), "", log.Ldate|log.Ltime|log.Lshortfile)
 	Env = Dev
 	mu  = sync.Mutex{}
-
 	red = func(s string) string {
 		return fmt.Sprintf("\x1b[%dm%s\x1b[0m", colorRed, s)
 	}
@@ -95,68 +96,68 @@ func init() {
 func Errorf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(magenta(errorPrefix))
-	log.Output(2, fmt.Sprintf(format, v...))
+	std.SetPrefix(magenta(errorPrefix))
+	std.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Error(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(magenta(errorPrefix))
-	log.Output(2, fmt.Sprintln(v...))
+	std.SetPrefix(magenta(errorPrefix))
+	std.Output(2, fmt.Sprintln(v...))
 }
 
 func Fatalf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(red(fatalPrefix))
-	log.Output(2, fmt.Sprintf(format, v...))
+	std.SetPrefix(red(fatalPrefix))
+	std.Output(2, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
 func Fatal(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(red(fatalPrefix))
-	log.Output(2, fmt.Sprintln(v...))
+	std.SetPrefix(red(fatalPrefix))
+	std.Output(2, fmt.Sprintln(v...))
 	os.Exit(1)
 }
 
 func Warnf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(yellow(warnPrefix))
-	log.Output(2, fmt.Sprintf(format, v...))
+	std.SetPrefix(yellow(warnPrefix))
+	std.Output(2, fmt.Sprintf(format, v...))
 
 }
 
 func Warn(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(yellow(warnPrefix))
-	log.Output(2, fmt.Sprintln(v...))
+	std.SetPrefix(yellow(warnPrefix))
+	std.Output(2, fmt.Sprintln(v...))
 }
 
 func Infof(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(green(infoPrefix))
-	log.Output(2, fmt.Sprintf(format, v...))
+	std.SetPrefix(green(infoPrefix))
+	std.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Info(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	log.SetPrefix(green(infoPrefix))
-	log.Output(2, fmt.Sprintln(v...))
+	std.SetPrefix(green(infoPrefix))
+	std.Output(2, fmt.Sprintln(v...))
 }
 
 func Debugf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	if Env {
-		log.SetPrefix(blue(debugPrefix))
-		log.Output(2, fmt.Sprintf(format, v...))
+		std.SetPrefix(blue(debugPrefix))
+		std.Output(2, fmt.Sprintf(format, v...))
 	}
 }
 
@@ -164,8 +165,8 @@ func Debug(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	if Env {
-		log.SetPrefix(blue(debugPrefix))
-		log.Output(2, fmt.Sprintln(v...))
+		std.SetPrefix(blue(debugPrefix))
+		std.Output(2, fmt.Sprintln(v...))
 	}
 }
 
@@ -222,12 +223,12 @@ func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...
 		mu.Unlock()
 		return
 	}
-	reFlag := log.Flags() & log.Lshortfile
+	reFlag := std.Flags() & log.Lshortfile
 	defer func() {
-		log.SetFlags(log.Flags() | reFlag)
+		std.SetFlags(std.Flags() | reFlag)
 		mu.Unlock()
 	}()
-	log.SetFlags(log.Flags() &^ log.Lshortfile)
+	std.SetFlags(std.Flags() &^ log.Lshortfile)
 	var prefix string
 	var fatal = false
 	if lFlag := cFlag & L_Bs; lFlag != 0 {
@@ -287,12 +288,12 @@ func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...
 			prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, host)))
 		}
 	}
-	log.SetPrefix(prefix)
+	std.SetPrefix(prefix)
 	if _fmt {
-		log.Output(2, fmt.Sprintf(format, v...))
+		std.Output(2, fmt.Sprintf(format, v...))
 		return
 	}
-	log.Output(2, fmt.Sprintln(v...))
+	std.Output(2, fmt.Sprintln(v...))
 
 	if fatal {
 		os.Exit(1)

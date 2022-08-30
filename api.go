@@ -47,8 +47,21 @@ func (p defaultPush) Count() uint64 {
 	return LoadConnNum()
 }
 
-func (p defaultPush) Info(uid uint64) (ConnInfo, error) {
-	return ConnInfo{}, nil
+func (p defaultPush) Info(biz BizReq) (*ConnInfo, error) {
+	t := time.NewTicker(time.Second * 10)
+	defer t.Stop()
+	BizCh <- biz
+	select {
+	case r := <-biz.Res:
+		if info, exist := r.(ConnInfo); exist {
+			return &info, nil
+		}
+		return nil, nil //offline
+	case <-t.C:
+		err := errs.ServiceCallTimedOut
+		return nil, err
+	}
+
 }
 
 var (
@@ -65,7 +78,7 @@ type AllPush interface {
 
 type ConnManger interface {
 	Count() uint64
-	Info(uid uint64) (ConnInfo, error)
+	Info(biz BizReq) (*ConnInfo, error)
 }
 
 type Adapter interface {

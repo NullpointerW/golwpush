@@ -211,10 +211,10 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 	case <-t.C:
 		pds.Del <- id
 		//TODO 消息持久化
-		//p
+
 		logger.Warnf("ack time out,msg id:%s", p.MsgId)
 	case <-ctx.Done():
-		pds.Del <- id
+		//pds.Del <- id
 	}
 }
 

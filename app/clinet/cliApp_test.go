@@ -27,7 +27,7 @@ func Test(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			t.Parallel()
-			time.Sleep(5000 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 			main()
 		})
 	}
