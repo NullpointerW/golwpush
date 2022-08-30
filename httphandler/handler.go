@@ -3,8 +3,8 @@ package httphandler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/NullpointerW/gopush"
-	"github.com/NullpointerW/gopush/utils"
+	"github.com/NullpointerW/golwpush"
+	"github.com/NullpointerW/golwpush/utils"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -12,11 +12,11 @@ import (
 )
 
 var PushHandler = Handler{
-	Adapter: gopush.Default,
+	Adapter: golwpush.Default,
 }
 
 type Handler struct {
-	gopush.Adapter
+	golwpush.Adapter
 }
 
 func (h Handler) Push(w http.ResponseWriter, req *http.Request) {
@@ -47,7 +47,7 @@ func (h Handler) MultiPush(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	jsBody, _ := ioutil.ReadAll(req.Body)
-	cts := &gopush.Contents{}
+	cts := &golwpush.Contents{}
 	err := json.Unmarshal(jsBody, cts)
 	if err != nil {
 		respBadReq(w, "json unmarshal error")
@@ -71,7 +71,7 @@ func (h Handler) Info(w http.ResponseWriter, req *http.Request) {
 	idStr := req.URL.Query().Get("id")
 	uid, _ := strconv.ParseUint(idStr, 10, 64)
 	res := make(chan any, 1)
-	i, err := h.Adapter.Info(gopush.BizReq{Res: res, Uid: uid, Typ: gopush.Info})
+	i, err := h.Adapter.Info(golwpush.BizReq{Res: res, Uid: uid, Typ: golwpush.Info})
 	if err != nil {
 		respSrvErr(w, err)
 		return

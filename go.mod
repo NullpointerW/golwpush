@@ -1,3 +1,3 @@
-module github.com/NullpointerW/gopush
+module github.com/NullpointerW/golwpush
 
 go 1.18

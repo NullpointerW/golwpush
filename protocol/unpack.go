@@ -2,8 +2,8 @@ package protocol
 
 import (
 	"encoding/binary"
-	"github.com/NullpointerW/gopush/errs"
-	"github.com/NullpointerW/gopush/pkg"
+	"github.com/NullpointerW/golwpush/errs"
+	"github.com/NullpointerW/golwpush/pkg"
 	"io"
 	"net"
 )

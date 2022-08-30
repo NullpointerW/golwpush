@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/NullpointerW/gopush"
-	"github.com/NullpointerW/gopush/httphandler"
-	"github.com/NullpointerW/gopush/logger"
+	"github.com/NullpointerW/golwpush"
+	"github.com/NullpointerW/golwpush/httphandler"
+	"github.com/NullpointerW/golwpush/logger"
 	"log"
 	"net"
 	"net/http"
@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	go gopush.Handle()
+	go golwpush.Handle()
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -39,7 +39,7 @@ func main() {
 			continue
 		}
 
-		go gopush.InitConn(conn)
+		go golwpush.InitConn(conn)
 
 	}
 }

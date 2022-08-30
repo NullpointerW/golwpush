@@ -2,10 +2,10 @@ package cli
 
 import (
 	"context"
-	"github.com/NullpointerW/gopush/errs"
-	"github.com/NullpointerW/gopush/logger"
-	"github.com/NullpointerW/gopush/pkg"
-	"github.com/NullpointerW/gopush/protocol"
+	"github.com/NullpointerW/golwpush/errs"
+	"github.com/NullpointerW/golwpush/logger"
+	"github.com/NullpointerW/golwpush/pkg"
+	"github.com/NullpointerW/golwpush/protocol"
 	"net"
 	"sync"
 	"time"

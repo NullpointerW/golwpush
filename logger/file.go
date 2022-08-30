@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/NullpointerW/gopush/utils"
+	"github.com/NullpointerW/golwpush/utils"
 	"log"
 	"os"
 	"time"

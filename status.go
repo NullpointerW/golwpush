@@ -1,4 +1,4 @@
-package gopush
+package golwpush
 
 import (
 	"sync/atomic"

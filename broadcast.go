@@ -1,6 +1,6 @@
-package gopush
+package golwpush
 
-import "github.com/NullpointerW/gopush/pkg"
+import "github.com/NullpointerW/golwpush/pkg"
 
 type Contents struct {
 	Ids []uint64 `json:"ids"`

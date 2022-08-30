@@ -1,12 +1,12 @@
-package gopush
+package golwpush
 
 import (
 	"context"
-	"github.com/NullpointerW/gopush/errs"
-	"github.com/NullpointerW/gopush/logger"
-	"github.com/NullpointerW/gopush/pkg"
-	"github.com/NullpointerW/gopush/protocol"
-	"github.com/NullpointerW/gopush/utils"
+	"github.com/NullpointerW/golwpush/errs"
+	"github.com/NullpointerW/golwpush/logger"
+	"github.com/NullpointerW/golwpush/pkg"
+	"github.com/NullpointerW/golwpush/protocol"
+	"github.com/NullpointerW/golwpush/utils"
 	"net"
 	"sync/atomic"
 	"time"

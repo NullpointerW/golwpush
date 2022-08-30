@@ -1,7 +1,7 @@
-package gopush
+package golwpush
 
 import (
-	"github.com/NullpointerW/gopush/errs"
+	"github.com/NullpointerW/golwpush/errs"
 	"time"
 )
 
