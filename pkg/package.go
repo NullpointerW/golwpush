@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
-	"gopush/utils"
+	"github.com/NullpointerW/gopush/utils"
 )
 
 type Typ uint8

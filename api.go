@@ -1,7 +1,7 @@
 package gopush
 
 import (
-	"gopush/errs"
+	"github.com/NullpointerW/gopush/errs"
 	"time"
 )
 

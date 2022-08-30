@@ -1,9 +1,9 @@
 package main
 
 import (
-	"gopush"
-	"gopush/httphandler"
-	"gopush/logger"
+	"github.com/NullpointerW/gopush"
+	"github.com/NullpointerW/gopush/httphandler"
+	"github.com/NullpointerW/gopush/logger"
 	"log"
 	"net"
 	"net/http"

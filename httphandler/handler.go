@@ -3,8 +3,8 @@ package httphandler
 import (
 	"encoding/json"
 	"fmt"
-	"gopush"
-	"gopush/utils"
+	"github.com/NullpointerW/gopush"
+	"github.com/NullpointerW/gopush/utils"
 	"io/ioutil"
 	"net/http"
 	"strconv"

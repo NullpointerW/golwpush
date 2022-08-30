@@ -3,7 +3,7 @@ package protocol
 import (
 	"bytes"
 	"encoding/binary"
-	"gopush/utils"
+	"github.com/NullpointerW/gopush/utils"
 )
 
 var heartLen = 2

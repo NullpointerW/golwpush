@@ -2,11 +2,11 @@ package gopush
 
 import (
 	"context"
-	"gopush/errs"
-	"gopush/logger"
-	"gopush/pkg"
-	"gopush/protocol"
-	"gopush/utils"
+	"github.com/NullpointerW/gopush/errs"
+	"github.com/NullpointerW/gopush/logger"
+	"github.com/NullpointerW/gopush/pkg"
+	"github.com/NullpointerW/gopush/protocol"
+	"github.com/NullpointerW/gopush/utils"
 	"net"
 	"sync/atomic"
 	"time"
