@@ -177,7 +177,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 					ack:            ack,
 					actualSendTime: time.Now(),
 				}); ok {
-					go ackPipeline(pending, ackBuf, msg.MsgId, msg)
+					go ackPipeline(pending, ackBuf, msg.MsgId, msg, ackBuf0[msg.MsgId].actualSendTime)
 					//continue
 				} else {
 					err = errs.AckBuffCapLimit
@@ -217,7 +217,7 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	conn.close()
 	cancelFunc()
 }
-func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal) {
+func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal, s time.Time) {
 	t := time.NewTimer(time.Second * 30)
 	defer t.Stop()
 	select {
