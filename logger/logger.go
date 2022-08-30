@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -69,10 +70,11 @@ const (
 type Level bool
 
 var (
-	std = log.New(io.MultiWriter(os.Stderr, createFile()), "", log.Ldate|log.Ltime|log.Lshortfile)
-	Env = Dev
-	mu  = sync.Mutex{}
-	red = func(s string) string {
+	std   = log.New(io.MultiWriter(os.Stderr, createFile()), "", log.Ldate|log.Ltime|log.Lshortfile)
+	color = runtime.GOOS != "windows"
+	Env   = Dev
+	mu    = sync.Mutex{}
+	red   = func(s string) string {
 		return fmt.Sprintf("\x1b[%dm%s\x1b[0m", colorRed, s)
 	}
 	green = func(s string) string {
@@ -96,21 +98,33 @@ func init() {
 func Errorf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(magenta(errorPrefix))
+	p := errorPrefix
+	if color {
+		p = magenta(errorPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Error(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(magenta(errorPrefix))
+	p := errorPrefix
+	if color {
+		p = magenta(errorPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintln(v...))
 }
 
 func Fatalf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(red(fatalPrefix))
+	p := fatalPrefix
+	if color {
+		p = red(fatalPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
@@ -118,7 +132,11 @@ func Fatalf(format string, v ...any) {
 func Fatal(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(red(fatalPrefix))
+	p := fatalPrefix
+	if color {
+		p = red(fatalPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintln(v...))
 	os.Exit(1)
 }
@@ -126,7 +144,11 @@ func Fatal(v ...any) {
 func Warnf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(yellow(warnPrefix))
+	p := warnPrefix
+	if color {
+		p = yellow(warnPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintf(format, v...))
 
 }
@@ -134,21 +156,33 @@ func Warnf(format string, v ...any) {
 func Warn(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(yellow(warnPrefix))
+	p := warnPrefix
+	if color {
+		p = yellow(warnPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintln(v...))
 }
 
 func Infof(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(green(infoPrefix))
+	p := infoPrefix
+	if color {
+		p = green(infoPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Info(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	std.SetPrefix(green(infoPrefix))
+	p := infoPrefix
+	if color {
+		p = green(infoPrefix)
+	}
+	std.SetPrefix(p)
 	std.Output(2, fmt.Sprintln(v...))
 }
 
@@ -156,7 +190,11 @@ func Debugf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	if Env {
-		std.SetPrefix(blue(debugPrefix))
+		p := debugPrefix
+		if color {
+			p = blue(debugPrefix)
+		}
+		std.SetPrefix(p)
 		std.Output(2, fmt.Sprintf(format, v...))
 	}
 }
@@ -165,7 +203,11 @@ func Debug(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	if Env {
-		std.SetPrefix(blue(debugPrefix))
+		p := debugPrefix
+		if color {
+			p = blue(debugPrefix)
+		}
+		std.SetPrefix(p)
 		std.Output(2, fmt.Sprintln(v...))
 	}
 }
@@ -234,58 +276,58 @@ func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...
 	if lFlag := cFlag & L_Bs; lFlag != 0 {
 		switch lFlag {
 		case L_Fatal:
-			prefix += red(strings.TrimSuffix(fatalPrefix, " "))
+			prefix += colorF(strings.TrimSuffix(fatalPrefix, " "), red)
 			fatal = true
 		case L_Err:
-			prefix += magenta(strings.TrimSuffix(errorPrefix, " "))
+			prefix += colorF(strings.TrimSuffix(errorPrefix, " "), magenta)
 		case L_Warn:
-			prefix += yellow(strings.TrimSuffix(warnPrefix, " "))
+			prefix += colorF(strings.TrimSuffix(warnPrefix, " "), yellow)
 		case L_Info:
-			prefix += green(strings.TrimSuffix(infoPrefix, " "))
+			prefix += colorF(strings.TrimSuffix(infoPrefix, " "), green)
 		case L_Debug:
-			prefix += blue(strings.TrimSuffix(debugPrefix, " "))
+			prefix += colorF(strings.TrimSuffix(debugPrefix, " "), blue)
 		default:
-			prefix += green(strings.TrimSuffix(infoPrefix, " "))
+			prefix += colorF(strings.TrimSuffix(infoPrefix, " "), green)
 		}
 	}
 	if cFlag&Ack != 0 {
-		prefix += strings.TrimSpace(green(ackPrefix))
+		prefix += strings.TrimSpace(colorF(ackPrefix, green))
 	}
 	if cFlag&(Ping|Pong) != 0 {
 		cFlag &^= HeartBeat
 	}
 	if cFlag&HeartBeat != 0 {
-		prefix += strings.TrimSpace(green(hbPrefix))
+		prefix += strings.TrimSpace(colorF(hbPrefix, green))
 	}
 	if cFlag&Ping != 0 {
-		prefix += strings.TrimSpace(green(pingPrefix))
+		prefix += strings.TrimSpace(colorF(pingPrefix, green))
 	}
 	if cFlag&Pong != 0 {
-		prefix += strings.TrimSpace(green(pongPrefix))
+		prefix += strings.TrimSpace(colorF(pongPrefix, green))
 	}
 	if cFlag&Kick != 0 {
-		prefix += strings.TrimSpace(magenta(kickPrefix))
+		prefix += strings.TrimSpace(colorF(kickPrefix, magenta))
 	}
 	if cFlag&Login != 0 {
-		prefix += strings.TrimSpace(green(loginPrefix))
+		prefix += strings.TrimSpace(colorF(loginPrefix, green))
 	}
 	if cFlag&Msg != 0 {
-		prefix += strings.TrimSpace(green(msgPrefix))
+		prefix += strings.TrimSpace(colorF(msgPrefix, green))
 	}
 	if cFlag&Cli != 0 {
 		cFlag = cFlag &^ Srv
-		prefix += strings.TrimSpace(blue(cliPrefix))
+		prefix += strings.TrimSpace(colorF(cliPrefix, blue))
 	}
 	if cFlag&Srv != 0 {
-		prefix += strings.TrimSpace(yellow(srvPrefix))
+		prefix += strings.TrimSpace(colorF(srvPrefix, yellow))
 	}
 	if cFlag&Addr != 0 {
 		if cFlag&Uid != 0 && cFlag&Host != 0 {
-			prefix += strings.TrimSpace(yellow(fmt.Sprintf(uidHostPrefix, uid, host)))
+			prefix += strings.TrimSpace(colorF(fmt.Sprintf(uidHostPrefix, uid, host), yellow))
 		} else if cFlag&Uid != 0 {
-			prefix += strings.TrimSpace(yellow(fmt.Sprintf(uidPrefix, uid)))
+			prefix += strings.TrimSpace(colorF(fmt.Sprintf(uidPrefix, uid), yellow))
 		} else {
-			prefix += strings.TrimSpace(yellow(fmt.Sprintf(addrPrefix, host)))
+			prefix += strings.TrimSpace(colorF(fmt.Sprintf(addrPrefix, host), yellow))
 		}
 	}
 	std.SetPrefix(prefix)
@@ -294,15 +336,20 @@ func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...
 		return
 	}
 	std.Output(2, fmt.Sprintln(v...))
-
 	if fatal {
 		os.Exit(1)
 	}
-
 }
 
 func ModifyLv(lv Level) {
 	mu.Lock()
 	defer mu.Unlock()
 	Env = lv
+}
+
+func colorF(s string, f func(s string) string) string {
+	if color {
+		return f(s)
+	}
+	return s
 }
