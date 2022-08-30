@@ -8,6 +8,7 @@ import (
 	"gopush/protocol"
 	"gopush/utils"
 	"net"
+	"sync/atomic"
 	"time"
 )
 
@@ -19,6 +20,7 @@ type Conn struct {
 	wch        chan<- pkg.SendMarshal
 	Addr       Addr
 	errMsg     chan<- error
+	sendSeq    atomic.Value
 }
 
 type ackPeek struct {
@@ -74,6 +76,17 @@ func (conn *Conn) close() {
 		logger.Error(err)
 	}
 	ConnRmCh <- conn
+}
+
+func (conn *Conn) incrSeq() uint64 { //cas 获取发送序列
+	for {
+		o := conn.sendSeq.Load().(uint64)
+		n := o + 1
+		if swa := conn.sendSeq.CompareAndSwap(o, n); swa {
+			return n
+		}
+	}
+
 }
 
 func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn net.Conn, conn *Conn) {
@@ -211,7 +224,6 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 	case <-t.C:
 		pds.Del <- id
 		//TODO 消息持久化
-
 		logger.Warnf("ack time out,msg id:%s", p.MsgId)
 	case <-ctx.Done():
 		//pds.Del <- id
@@ -221,6 +233,8 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 func newClient(tcpConn net.Conn, id uint64) {
 	wch := make(chan pkg.SendMarshal, 1024)
 	errCh := make(chan error, 5)
+	seq := atomic.Value{}
+	seq.Store(uint64(0))
 	conn := &Conn{
 		Id:         id,
 		tcpConn:    tcpConn,
@@ -229,6 +243,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 		wch:        wch,
 		errMsg:     errCh,
 		Addr:       &ConnAddr{tcpConn.RemoteAddr(), id},
+		sendSeq:    seq,
 	}
 	go connHandle(wch, errCh, id, tcpConn, conn)
 	ConnAddCh <- conn
