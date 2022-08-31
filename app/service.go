@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	logger.ModifyLv(logger.Dev)
+	logger.ModifyLv(logger.Prod)
 }
 
 func main() {

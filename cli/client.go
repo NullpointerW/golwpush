@@ -19,32 +19,43 @@ type PushCli interface {
 }
 
 type client struct {
-	ctx        context.Context
-	cFunc      context.CancelFunc
-	buffer     []byte
-	readBufPtr int
-	id         uint64
-	tcpConn    net.Conn
-	pongCh     chan struct{}
-	WMu        sync.Mutex
+	ctx     context.Context
+	cFunc   context.CancelFunc
+	buffer  []byte
+	wBufPos int
+	id      uint64
+	tcpConn net.Conn
+	pongCh  chan struct{}
+	WMu     sync.Mutex
 }
 
 var pongRecv = &sync.Once{}
 
 func (cli *client) Read() (msg string, err error) {
-	var retry bool
-unpack:
-	length, TCPErr := cli.tcpConn.Read(cli.buffer[cli.readBufPtr:])
-	if TCPErr != nil {
-		return msg, TCPErr
+	var (
+		retry        bool
+		rPos, length int
+		tcpErr       error
+		jmp          = false
+	)
+	if cli.wBufPos != 0 {
+		rPos = cli.wBufPos
+		jmp = true
+		goto readBuf
 	}
-	rPos := length + cli.readBufPtr
-	msg, retry, err = protocol.Unpack(cli.buffer[:rPos], &cli.readBufPtr)
+netPull:
+	length, tcpErr = cli.tcpConn.Read(cli.buffer[cli.wBufPos:])
+	if tcpErr != nil {
+		return msg, tcpErr
+	}
+	rPos = length + cli.wBufPos
+readBuf:
+	msg, retry, err = protocol.Unpack(cli.buffer[:rPos], &cli.wBufPos, jmp)
 	if err != nil {
 		return msg, err
 	}
 	if retry {
-		goto unpack
+		goto netPull
 	}
 	return
 }
@@ -139,13 +150,13 @@ func NewClient(conn net.Conn, id uint64) (cli PushCli, cancelFunc context.Cancel
 	var ctx context.Context
 	ctx, cancelFunc = context.WithCancel(context.Background())
 	cli = &client{
-		ctx:        ctx,
-		buffer:     make([]byte, pkg.MaxLen),
-		readBufPtr: 0,
-		id:         id,
-		tcpConn:    conn,
-		cFunc:      cancelFunc,
-		pongCh:     make(chan struct{}, 1000),
+		ctx:     ctx,
+		buffer:  make([]byte, pkg.MaxLen),
+		wBufPos: 0,
+		id:      id,
+		tcpConn: conn,
+		cFunc:   cancelFunc,
+		pongCh:  make(chan struct{}, 1000),
 	}
 	return cli, cancelFunc
 }

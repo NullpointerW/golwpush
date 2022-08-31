@@ -52,15 +52,25 @@ func (conn *Conn) write(msg *pkg.Package) {
 }
 
 func (conn *Conn) read() (msg string, err error) {
-	var retry bool
-unpack:
-	length, tcpErr := conn.tcpConn.Read(conn.readBuf[conn.readBufPtr:])
+	var (
+		retry        bool
+		rPos, length int
+		tcpErr       error
+	)
+	if conn.readBufPtr != 0 {
+		rPos = conn.readBufPtr
+		goto readBuf
+	}
+netPull:
+	length, tcpErr = conn.tcpConn.Read(conn.readBuf[conn.readBufPtr:])
 	if tcpErr != nil {
 		return msg, tcpErr
 	}
-	msg, retry, err = protocol.Unpack(conn.readBuf[:length+conn.readBufPtr], &conn.readBufPtr)
+	rPos = length + conn.readBufPtr
+readBuf:
+	msg, retry, err = protocol.Unpack(conn.readBuf[:rPos], &conn.readBufPtr, false)
 	if retry {
-		goto unpack
+		goto netPull
 	}
 	if err != nil {
 		return msg, err
@@ -187,6 +197,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			}
 			var n int
 			n, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
+			logger.Warn(msg.Marshaled)
 			logger.Debugf("write %d", n)
 			if err != nil {
 				goto Fatal

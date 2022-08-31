@@ -13,18 +13,18 @@ const (
 	EndFlag byte = '|'
 )
 
-func Unpack(b []byte, rdxPtr *int) (msg string, retry bool, err error) {
+func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
 	//r:=b[readIdx:]
 	logger.Debug("before:" + string(b))
 	for i, v := range b {
 		if v == EndFlag {
 			msg = string(b[:i])
 			if len(b) == i+1 {
-				*rdxPtr = 0
+				*wIdx = 0
 				logger.Debug("after:" + string(b))
 				return
 			}
-			*rdxPtr = copy(b, b[i+1:])
+			*wIdx = copy(b, b[i+1:])
 			logger.Debug("after:" + string(b))
 			return
 		}
@@ -34,7 +34,9 @@ func Unpack(b []byte, rdxPtr *int) (msg string, retry bool, err error) {
 		err = errs.UnpackOutOfSize
 		return
 	}
-	*rdxPtr += len(b)
+	if !jmp {
+		*wIdx += len(b)
+	}
 	retry = true
 	logger.Debug("after:" + string(b))
 	return

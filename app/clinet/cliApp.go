@@ -13,6 +13,10 @@ import (
 	"time"
 )
 
+func init() {
+	logger.ModifyLv(logger.Dev)
+}
+
 func main() {
 	conn, err := net.Dial("tcp", "localhost:9000")
 	if err != nil {
