@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/NullpointerW/golwpush/errs"
 	"github.com/NullpointerW/golwpush/logger"
+	"github.com/NullpointerW/golwpush/netrw"
 	"github.com/NullpointerW/golwpush/pkg"
 	"github.com/NullpointerW/golwpush/protocol"
 	"github.com/NullpointerW/golwpush/utils"
@@ -14,14 +15,15 @@ import (
 )
 
 type Conn struct {
-	Id         uint64
-	tcpConn    net.Conn
-	readBuf    []byte
-	readBufPtr int
-	wch        chan<- pkg.SendMarshal
-	Addr       Addr
-	errMsg     chan<- error
-	sendSeq    atomic.Value
+	Id      uint64
+	tcpConn net.Conn
+	/*readBuf []byte
+	wBufPos int*/
+	netrw.ReaderBuff
+	wch     chan<- pkg.SendMarshal
+	Addr    Addr
+	errMsg  chan<- error
+	sendSeq atomic.Value
 }
 
 type ackPeek struct {
@@ -52,30 +54,7 @@ func (conn *Conn) write(msg *pkg.Package) {
 }
 
 func (conn *Conn) read() (msg string, err error) {
-	var (
-		retry        bool
-		rPos, length int
-		tcpErr       error
-	)
-	if conn.readBufPtr != 0 {
-		rPos = conn.readBufPtr
-		goto readBuf
-	}
-netPull:
-	length, tcpErr = conn.tcpConn.Read(conn.readBuf[conn.readBufPtr:])
-	if tcpErr != nil {
-		return msg, tcpErr
-	}
-	rPos = length + conn.readBufPtr
-readBuf:
-	msg, retry, err = protocol.Unpack(conn.readBuf[:rPos], &conn.readBufPtr, false)
-	if retry {
-		goto netPull
-	}
-	if err != nil {
-		return msg, err
-	}
-	return
+	return netrw.ReadTcp(conn.tcpConn, &conn.ReaderBuff)
 }
 
 func (conn *Conn) close() {
@@ -252,8 +231,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 	conn := &Conn{
 		Id:         id,
 		tcpConn:    tcpConn,
-		readBuf:    make([]byte, pkg.MaxLen),
-		readBufPtr: 0,
+		ReaderBuff: netrw.ReaderBuff{Buffer: make([]byte, pkg.MaxLen)},
 		wch:        wch,
 		errMsg:     errCh,
 		Addr:       &ConnAddr{tcpConn.RemoteAddr(), id},
