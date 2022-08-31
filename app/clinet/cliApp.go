@@ -48,6 +48,8 @@ func main() {
 		}
 		tPkg, pkgErr := pkg.New(msg)
 		if pkgErr != nil {
+			logger.Error("json err")
+			logger.Error(msg)
 			fatal(pkgErr, pCli)
 		}
 		switch tPkg.Mode {

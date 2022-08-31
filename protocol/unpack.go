@@ -3,6 +3,7 @@ package protocol
 import (
 	"encoding/binary"
 	"github.com/NullpointerW/golwpush/errs"
+	"github.com/NullpointerW/golwpush/logger"
 	"github.com/NullpointerW/golwpush/pkg"
 	"io"
 	"net"
@@ -12,16 +13,19 @@ const (
 	EndFlag byte = '|'
 )
 
-func Unpack(b []byte, readIdx int) (msg string, readSt int, retry bool, err error) {
-
+func Unpack(b []byte, rdxPtr *int) (msg string, retry bool, err error) {
+	//r:=b[readIdx:]
+	logger.Debug("before:" + string(b))
 	for i, v := range b {
 		if v == EndFlag {
 			msg = string(b[:i])
 			if len(b) == i+1 {
-				readIdx = 0
+				*rdxPtr = 0
+				logger.Debug("after:" + string(b))
 				return
 			}
-			readIdx = copy(b, b[i+1:])
+			*rdxPtr = copy(b, b[i+1:])
+			logger.Debug("after:" + string(b))
 			return
 		}
 	}
@@ -30,8 +34,9 @@ func Unpack(b []byte, readIdx int) (msg string, readSt int, retry bool, err erro
 		err = errs.UnpackOutOfSize
 		return
 	}
-	readIdx += len(b)
+	*rdxPtr += len(b)
 	retry = true
+	logger.Debug("after:" + string(b))
 	return
 }
 

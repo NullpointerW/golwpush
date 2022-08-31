@@ -32,13 +32,14 @@ type client struct {
 var pongRecv = &sync.Once{}
 
 func (cli *client) Read() (msg string, err error) {
+	var retry bool
+unpack:
 	length, TCPErr := cli.tcpConn.Read(cli.buffer[cli.readBufPtr:])
 	if TCPErr != nil {
 		return msg, TCPErr
 	}
-	var retry bool
-unpack:
-	msg, cli.readBufPtr, retry, err = protocol.Unpack(cli.buffer[:length+cli.readBufPtr], cli.readBufPtr)
+	rPos := length + cli.readBufPtr
+	msg, retry, err = protocol.Unpack(cli.buffer[:rPos], &cli.readBufPtr)
 	if err != nil {
 		return msg, err
 	}
