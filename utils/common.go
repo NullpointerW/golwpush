@@ -13,5 +13,5 @@ const (
 func GenerateId(origin uint64) string {
 	return strconv.FormatUint(origin, 10) +
 		":" +
-		strconv.FormatInt(time.Now().UnixNano(), 10)
+		strconv.FormatInt(time.Now().UnixNano(), 10) + ":"
 }

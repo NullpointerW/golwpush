@@ -8,6 +8,7 @@ import (
 	"github.com/NullpointerW/golwpush/protocol"
 	"github.com/NullpointerW/golwpush/utils"
 	"net"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -41,8 +42,8 @@ func (c *ConnAddr) Uid() uint64 {
 }
 
 func (conn *Conn) write(msg *pkg.Package) {
-	msg.Id = utils.GenerateId(conn.Id)    //生成消息id
-	marshaled, err := msg.MarshalToSend() //避免在写goroutine中编码
+	msg.Id = utils.GenerateId(conn.Id) + strconv.FormatUint(conn.incrSeq(), 10) //生成消息id
+	marshaled, err := msg.MarshalToSend()                                       //避免在写goroutine中编码
 	if err != nil {
 		conn.errMsg <- err
 		return

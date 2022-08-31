@@ -29,9 +29,9 @@ type Package struct {
 }
 
 type SendMarshal struct {
-	MsgId     string
-	Marshaled string
-	Mode      Typ
+	MsgId     string `json:"id"`
+	Marshaled string `json:"marshaled"`
+	Mode      Typ    `json:"mode"`
 }
 
 var (
