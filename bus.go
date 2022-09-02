@@ -82,7 +82,15 @@ func Handle() {
 }
 
 func InitConn(tcpConn net.Conn) {
+	uid, err := AuthCli(tcpConn)
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+	newClient(tcpConn, uid)
+}
 
+func AuthCli(conn net.Conn) (uid uint64, err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func(ctx context.Context) {
@@ -91,23 +99,19 @@ func InitConn(tcpConn net.Conn) {
 		select {
 		case <-ctx.Done():
 		case <-t.C:
-			tcpConn.Close()
-			logger.Fatal(errs.SendUidTimeOut)
+			conn.Close()
+			logger.PlnNUid(logger.L_Err|logger.Host, conn.RemoteAddr().String(), errs.SendUidTimeOut)
 		}
 	}(ctx)
 	//接收客户端uid
-	data, err := protocol.UnPackByteStream(tcpConn)
+	data, err := protocol.UnPackByteStream(conn)
 	if err != nil {
-		logger.PfNUid(logger.CliErr, tcpConn.RemoteAddr().String(), "read error:%v", err)
+		logger.PfNUid(logger.CliErr, conn.RemoteAddr().String(), "read error:%v", err)
 		cancel()
 		return
 	}
-
 	cancel()
-
-	uid := binary.BigEndian.Uint64(data)
-
-	logger.PfNUid(logger.Cli|logger.Login|logger.Host, tcpConn.RemoteAddr().String(), "recv uid:%d", uid)
-
-	newClient(tcpConn, uid)
+	uid = binary.BigEndian.Uint64(data)
+	logger.PfNUid(logger.Cli|logger.Login|logger.Host, conn.RemoteAddr().String(), "recv uid:%d", uid)
+	return
 }
