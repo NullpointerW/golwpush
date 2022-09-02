@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/binary"
 	"github.com/NullpointerW/golwpush/errs"
 	"github.com/NullpointerW/golwpush/logger"
 	"github.com/NullpointerW/golwpush/netrw"
@@ -17,6 +18,7 @@ type PushCli interface {
 	Write(p string) (length int, err error)
 	Close()
 	PongRecv()
+	Auth()
 }
 
 type client struct {
@@ -25,7 +27,7 @@ type client struct {
 	/*buffer  []byte
 	wBufPos int*/
 	tcpReader netrw.Reader
-	id        uint64
+	uid       uint64
 	tcpConn   net.Conn
 	pongCh    chan struct{}
 	//WMu     sync.Mutex
@@ -87,7 +89,7 @@ func HeartbeatCheck(pushCli PushCli) {
 		case <-cli.pongCh:
 			pongRecv.Do(
 				func() {
-					logger.PrintfNonUid(logger.PingOutput|logger.Host, cli.tcpConn.RemoteAddr().String(), "recved pong")
+					logger.PfNUid(logger.PongOutput|logger.Host, cli.tcpConn.RemoteAddr().String(), "recved pong")
 				})
 
 			t.Reset(time.Second * 60)
@@ -123,13 +125,26 @@ func SendHeartbeat(pushCli PushCli) {
 	}
 }
 
+func (cli *client) Auth() {
+	data := make([]byte, 8)
+	binary.BigEndian.PutUint64(data, cli.uid)
+	trans := protocol.PackByteStream(8, data)
+	_, wErr := cli.tcpConn.Write(trans)
+	if wErr != nil {
+		defer cli.tcpConn.Close()
+		logger.Fatalf("write error: %v", wErr)
+	}
+	logger.PfNUid(logger.Login|logger.Srv|logger.Host, cli.tcpConn.RemoteAddr().String(),
+		"sendUid:%d succeed\n", cli.uid)
+}
+
 func NewClient(conn net.Conn, id uint64) (cli PushCli, cancelFunc context.CancelFunc) {
 	var ctx context.Context
 	ctx, cancelFunc = context.WithCancel(context.Background())
 	cli = &client{
 		ctx:       ctx,
 		tcpReader: &netrw.TcpReader{Buffer: make([]byte, pkg.MaxLen), Conn: conn},
-		id:        id,
+		uid:       id,
 		tcpConn:   conn,
 		cFunc:     cancelFunc,
 		pongCh:    make(chan struct{}, 1000),

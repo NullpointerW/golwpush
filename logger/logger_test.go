@@ -60,15 +60,15 @@ func TestError(t *testing.T) {
 }
 
 func TestCustomPrint(t *testing.T) {
-	PrintlnWithAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
+	PlnWAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
 	Println(Kick|Ping|Cli|Host|Msg, 0, "", "testing for 3")
-	PrintfWithAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
+	PfWAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
 	Printf(Kick|Ping|Uid|Msg|Srv, uid, host, "testing for %d", 3)
-	PrintfNonAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
-	PrintfNonUid(Kick|Ping|Addr|Msg|Srv, host, "testing for %d", 3)
+	PfNAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
+	PfNUid(Kick|Ping|Addr|Msg|Srv, host, "testing for %d", 3)
 	log.Print("log")
-	//PrintlnWithAddr(L_Info|Kick|Ping|Cli|Host|Msg|Srv, 0, host, "testing")
-	//PrintlnWithAddr(PingErrOutput|Cli|Uid, uid, host, "testing")
+	//PlnWAddr(L_Info|Kick|Ping|Cli|Host|Msg|Srv, 0, host, "testing")
+	//PlnWAddr(PingErrOutput|Cli|Uid, uid, host, "testing")
 
 	fmt.Printf("%b\n", L_Fatal)
 }
@@ -87,9 +87,9 @@ func TestConstVal(t *testing.T) {
 func TestCustomPrintf(t *testing.T) {
 
 	ModifyLv(Prod)
-	//PrintlnWithAddr(L_Debug|Srv, _addr, "testing for 3")
-	PrintlnWithAddr(HeartBeat|Srv, uid, host, "testing for 3")
-	//PrintlnWithAddr(HeartBeat|Pong|Srv, _addr, "testing for 3")
+	//PlnWAddr(L_Debug|Srv, _addr, "testing for 3")
+	PlnWAddr(HeartBeat|Srv, uid, host, "testing for 3")
+	//PlnWAddr(HeartBeat|Pong|Srv, _addr, "testing for 3")
 
 }
 

@@ -98,7 +98,7 @@ func InitConn(tcpConn net.Conn) {
 	//接收客户端uid
 	data, err := protocol.UnPackByteStream(tcpConn)
 	if err != nil {
-		logger.PrintfNonUid(logger.CliErr, tcpConn.RemoteAddr().String(), "read error:%v", err)
+		logger.PfNUid(logger.CliErr, tcpConn.RemoteAddr().String(), "read error:%v", err)
 		cancel()
 		return
 	}
@@ -107,7 +107,7 @@ func InitConn(tcpConn net.Conn) {
 
 	uid := binary.BigEndian.Uint64(data)
 
-	logger.PrintfNonUid(logger.Cli|logger.Login|logger.Host, tcpConn.RemoteAddr().String(), "recv uid:%d", uid)
+	logger.PfNUid(logger.Cli|logger.Login|logger.Host, tcpConn.RemoteAddr().String(), "recv uid:%d", uid)
 
 	newClient(tcpConn, uid)
 }

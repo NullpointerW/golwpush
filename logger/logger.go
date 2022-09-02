@@ -56,9 +56,9 @@ const (
 	L_Info        = L_Warn << 1
 	L_Debug       = L_Info << 1
 	Addr          = Uid | Host
-	PingOutput    = Cli | Ping
-	PongOutput    = Srv | Pong
-	MsgOutput     = Srv | Msg
+	PingOutput    = Srv | Ping
+	PongOutput    = Cli | Pong
+	MsgOutput     = Cli | Msg
 	PingErrOutput = L_Err | PingOutput
 	MsgErrOutput  = L_Err | MsgOutput
 	PongErrOutput = L_Err | PongOutput
@@ -212,43 +212,43 @@ func Debug(v ...any) {
 	}
 }
 
-func PrintlnWithAddr(cFlag uint16, uid uint64, host string, v ...any) {
+func PlnWAddr(cFlag uint16, uid uint64, host string, v ...any) {
 	customPrint(cFlag|Addr, false, uid, host, "%v", v...)
 }
 
-func PrintlnWithHost(cFlag uint16, uid uint64, host string, v ...any) {
+func PlnWHost(cFlag uint16, uid uint64, host string, v ...any) {
 	customPrint(cFlag|Host, false, uid, host, "%v", v...)
 }
 
-func PrintlnNonHost(cFlag uint16, uid uint64, v ...any) {
+func PlnNHost(cFlag uint16, uid uint64, v ...any) {
 	customPrint(cFlag&^Host, false, uid, "", "%v", v...)
 }
 
-func PrintlnNonAddr(cFlag uint16, v ...any) {
+func PlnNAddr(cFlag uint16, v ...any) {
 	customPrint(cFlag&^Addr, false, 0, "", "%v", v...)
 }
 
-func PrintfWithHost(cFlag uint16, uid uint64, host string, format string, v ...any) {
+func PfWHost(cFlag uint16, uid uint64, host string, format string, v ...any) {
 	customPrint(cFlag|Host, true, uid, host, format, v...)
 }
 
-func PrintfWithAddr(cFlag uint16, uid uint64, host string, format string, v ...any) {
+func PfWAddr(cFlag uint16, uid uint64, host string, format string, v ...any) {
 	customPrint(cFlag|Addr, true, uid, host, format, v...)
 }
 
-func PrintfNonHost(cFlag uint16, uid uint64, format string, v ...any) {
+func PfNHost(cFlag uint16, uid uint64, format string, v ...any) {
 	customPrint(cFlag&^Host, true, uid, "", format, v...)
 }
 
-func PrintfNonAddr(cFlag uint16, format string, v ...any) {
+func PfNAddr(cFlag uint16, format string, v ...any) {
 	customPrint(cFlag&^Addr, true, 0, "", format, v...)
 }
 
-func PrintlnNonUid(cFlag uint16, host string, v ...any) {
+func PlnNUid(cFlag uint16, host string, v ...any) {
 	customPrint(cFlag&^Uid, false, 0, host, "%v", v...)
 }
 
-func PrintfNonUid(cFlag uint16, host string, format string, v ...any) {
+func PfNUid(cFlag uint16, host string, format string, v ...any) {
 	customPrint(cFlag&^Uid, true, 0, host, format, v...)
 }
 func Println(cFlag uint16, uid uint64, host string, v ...any) {

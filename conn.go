@@ -129,16 +129,16 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	go func(ctx context.Context) {
 		t := time.NewTimer(time.Minute * 1)
 		defer t.Stop()
-		logger.PrintlnWithAddr(logger.L_Debug|logger.HeartBeat|logger.Cli, conn.Addr.Uid(), conn.Addr.String(),
+		logger.PlnWAddr(logger.L_Debug|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
 			"start heartbeat check") //debug
 		for {
 			select {
 			case <-ctx.Done():
-				logger.PrintlnWithAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
+				logger.PlnWAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
 					"heartbeat check end") //debug
 				return
 			case <-t.C:
-				logger.PrintlnWithAddr(logger.L_Warn|logger.HeartBeat|logger.Cli, conn.Addr.Uid(), conn.Addr.String(),
+				logger.PlnWAddr(logger.L_Warn|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
 					"Heartbeat timeout 60s...") //debug
 				errCh <- errs.HeartbeatTimeout
 				return
