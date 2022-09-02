@@ -82,7 +82,6 @@ func Handle() {
 }
 
 func InitConn(tcpConn net.Conn) {
-	//buf := make([]byte, 128)
 
 	ctx, cancel := context.WithCancel(context.Background())
 

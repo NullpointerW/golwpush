@@ -24,17 +24,17 @@ type client struct {
 	cFunc context.CancelFunc
 	/*buffer  []byte
 	wBufPos int*/
-	netrw.ReaderBuff
-	id      uint64
-	tcpConn net.Conn
-	pongCh  chan struct{}
+	tcpReader netrw.Reader
+	id        uint64
+	tcpConn   net.Conn
+	pongCh    chan struct{}
 	//WMu     sync.Mutex
 }
 
 var pongRecv = &sync.Once{}
 
 func (cli *client) Read() (msg string, err error) {
-	return netrw.ReadTcp(cli.tcpConn, &cli.ReaderBuff)
+	return cli.tcpReader.Read()
 }
 
 func (cli *client) Write(p string) (length int, err error) {
@@ -127,12 +127,12 @@ func NewClient(conn net.Conn, id uint64) (cli PushCli, cancelFunc context.Cancel
 	var ctx context.Context
 	ctx, cancelFunc = context.WithCancel(context.Background())
 	cli = &client{
-		ctx:        ctx,
-		ReaderBuff: netrw.ReaderBuff{Buffer: make([]byte, pkg.MaxLen)},
-		id:         id,
-		tcpConn:    conn,
-		cFunc:      cancelFunc,
-		pongCh:     make(chan struct{}, 1000),
+		ctx:       ctx,
+		tcpReader: &netrw.TcpReader{Buffer: make([]byte, pkg.MaxLen), Conn: conn},
+		id:        id,
+		tcpConn:   conn,
+		cFunc:     cancelFunc,
+		pongCh:    make(chan struct{}, 1000),
 	}
 	return cli, cancelFunc
 }

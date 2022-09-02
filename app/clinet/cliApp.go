@@ -22,7 +22,6 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	//logger.Infof("connect to server %s\n", conn.RemoteAddr().String())
 	logger.PrintlnNonUid(logger.Login|logger.Srv|logger.Host, conn.RemoteAddr().String(), "connected to server")
 	rand.Seed(time.Now().UnixNano())
 	var (
@@ -30,8 +29,6 @@ func main() {
 	)
 	pCli, _ := cli.NewClient(conn, uint64(uid))
 	defer pCli.Close()
-	//msg := strconv.Itoa(uid)
-	//_, wErr := pCli.Write(msg)
 	data := make([]byte, 8)
 	binary.BigEndian.PutUint64(data, uint64(uid))
 	trans := protocol.PackByteStream(8, data)
@@ -40,7 +37,6 @@ func main() {
 		defer conn.Close()
 		logger.Fatalf("write error: %v", wErr)
 	}
-	//logger.Debugf("[login]sendId:%d succeed\n", uid)
 	logger.PrintfNonUid(logger.Login|logger.Srv|logger.Host, conn.RemoteAddr().String(), "sendUid:%d succeed\n", uid)
 	go cli.SendHeartbeat(pCli)
 	go cli.HeartbeatCheck(pCli)

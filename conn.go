@@ -19,11 +19,11 @@ type Conn struct {
 	tcpConn net.Conn
 	/*readBuf []byte
 	wBufPos int*/
-	netrw.ReaderBuff
-	wch     chan<- pkg.SendMarshal
-	Addr    Addr
-	errMsg  chan<- error
-	sendSeq atomic.Value
+	tcpReader netrw.Reader
+	wch       chan<- pkg.SendMarshal
+	Addr      Addr
+	errMsg    chan<- error
+	sendSeq   atomic.Value
 }
 
 type ackPeek struct {
@@ -54,7 +54,7 @@ func (conn *Conn) write(msg *pkg.Package) {
 }
 
 func (conn *Conn) read() (msg string, err error) {
-	return netrw.ReadTcp(conn.tcpConn, &conn.ReaderBuff)
+	return conn.tcpReader.Read()
 }
 
 func (conn *Conn) close() {
@@ -229,13 +229,13 @@ func newClient(tcpConn net.Conn, id uint64) {
 	seq := atomic.Value{}
 	seq.Store(uint64(0))
 	conn := &Conn{
-		Id:         id,
-		tcpConn:    tcpConn,
-		ReaderBuff: netrw.ReaderBuff{Buffer: make([]byte, pkg.MaxLen)},
-		wch:        wch,
-		errMsg:     errCh,
-		Addr:       &ConnAddr{tcpConn.RemoteAddr(), id},
-		sendSeq:    seq,
+		Id:        id,
+		tcpConn:   tcpConn,
+		tcpReader: &netrw.TcpReader{Buffer: make([]byte, pkg.MaxLen), Conn: tcpConn},
+		wch:       wch,
+		errMsg:    errCh,
+		Addr:      &ConnAddr{tcpConn.RemoteAddr(), id},
+		sendSeq:   seq,
 	}
 	go connHandle(wch, errCh, id, tcpConn, conn)
 	ConnAddCh <- conn
