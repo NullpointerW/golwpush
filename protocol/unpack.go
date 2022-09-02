@@ -15,7 +15,7 @@ const (
 
 func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
 	//r:=b[readIdx:]
-	logger.Debug("before:" + string(b))
+	//logger.Debug("before:" + string(b))
 	for i, v := range b {
 		if v == EndFlag {
 			msg = string(b[:i])
@@ -38,7 +38,7 @@ func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
 		*wIdx += len(b)
 	}
 	retry = true
-	logger.Debug("after:" + string(b))
+	//logger.Debug("after:" + string(b))
 	return
 }
 

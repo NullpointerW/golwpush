@@ -174,10 +174,10 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 					goto Fatal
 				}
 			}
-			var n int
-			n, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
+			//var n int
+			_, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
 			logger.Warn(msg.Marshaled)
-			logger.Debugf("write %d", n)
+			//logger.Debugf("write %d", n)
 			if err != nil {
 				goto Fatal
 			}
