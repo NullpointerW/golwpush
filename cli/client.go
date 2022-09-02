@@ -134,7 +134,7 @@ func (cli *client) Auth() {
 		defer cli.tcpConn.Close()
 		logger.Fatalf("write error: %v", wErr)
 	}
-	logger.PfNUid(logger.Login|logger.Srv|logger.Host, cli.tcpConn.RemoteAddr().String(),
+	logger.PfNUid(logger.Login|logger.Cli|logger.Host, cli.tcpConn.RemoteAddr().String(),
 		"sendUid:%d succeed\n", cli.uid)
 }
 
