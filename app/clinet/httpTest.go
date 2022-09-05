@@ -26,14 +26,3 @@ func main() {
 	}
 	wg.Wait()
 }
-
-//func main() {
-//	c := make([]int, 20, 40)
-//	fmt.Println(cap(c))
-//	fmt.Printf("%p\n", c)
-//	c12 := c[1:20]
-//	fmt.Printf("%p\n", c12)
-//	c = append(c, 1)
-//	fmt.Println(cap(c12))
-//	fmt.Printf("%p", c12)
-//}
