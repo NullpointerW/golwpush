@@ -25,7 +25,7 @@ type ChanMap[K comparable, V any] struct {
 //	Rm(key K)
 //}
 
-func (cMap ChanMap[any, any]) Cap() int {
+func (cMap ChanMap[K, V]) Cap() int {
 	return cMap.cap
 }
 
