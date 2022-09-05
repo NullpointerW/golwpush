@@ -100,6 +100,7 @@ func Errorf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := errorPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = magenta(errorPrefix)
 	}
@@ -111,6 +112,7 @@ func Error(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := errorPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = magenta(errorPrefix)
 	}
@@ -122,6 +124,7 @@ func Fatalf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := fatalPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = red(fatalPrefix)
 	}
@@ -134,6 +137,7 @@ func Fatal(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := fatalPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = red(fatalPrefix)
 	}
@@ -146,6 +150,7 @@ func Warnf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := warnPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = yellow(warnPrefix)
 	}
@@ -158,6 +163,7 @@ func Warn(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := warnPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = yellow(warnPrefix)
 	}
@@ -169,6 +175,7 @@ func Infof(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := infoPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = green(infoPrefix)
 	}
@@ -180,6 +187,7 @@ func Info(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
 	p := infoPrefix
+	p = strings.TrimSpace(p)
 	if color {
 		p = green(infoPrefix)
 	}
@@ -192,6 +200,7 @@ func Debugf(format string, v ...any) {
 	defer mu.Unlock()
 	if Env {
 		p := debugPrefix
+		p = strings.TrimSpace(p)
 		if color {
 			p = blue(debugPrefix)
 		}
@@ -205,6 +214,7 @@ func Debug(v ...any) {
 	defer mu.Unlock()
 	if Env {
 		p := debugPrefix
+		p = strings.TrimSpace(p)
 		if color {
 			p = blue(debugPrefix)
 		}

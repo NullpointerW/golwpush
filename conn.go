@@ -171,7 +171,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 					//continue
 				} else {
 					err = errs.AckBuffCapLimit
-					goto Fatal
+					goto fatal
 				}
 			}
 			//var n int
@@ -179,7 +179,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			logger.Warn(msg.Marshaled)
 			//logger.Debugf("write %d", n)
 			if err != nil {
-				goto Fatal
+				goto fatal
 			}
 
 		case id := <-ackBuf.Del:
@@ -189,10 +189,10 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			}
 
 		case err = <-errCh:
-			goto Fatal
+			goto fatal
 		}
 	}
-Fatal:
+fatal:
 	connFatal(err, conn, cancel)
 
 }
