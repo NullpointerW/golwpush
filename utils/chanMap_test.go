@@ -34,6 +34,7 @@ func TestChMap(t *testing.T) {
 
 	for i := 0; i < 1000000; i++ {
 		cmap.Put(i, i)
+		cmap.Cap()
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(1000000)

@@ -11,7 +11,7 @@ package utils
 
 type ChanMap[K comparable, V any] struct {
 	map0 map[K]V
-	Cap  int
+	cap  int
 	Del  chan K
 }
 
@@ -25,9 +25,13 @@ type ChanMap[K comparable, V any] struct {
 //	Rm(key K)
 //}
 
+func (cMap ChanMap[any, any]) Cap() int {
+	return cMap.cap
+}
+
 func (cMap ChanMap[K, V]) Put(key K, val V) (ok bool) {
 	ok = true
-	if len(cMap.map0) < cMap.Cap {
+	if len(cMap.map0) < cMap.cap {
 		cMap.map0[key] = val
 		return
 	}
@@ -54,7 +58,7 @@ func (cMap ChanMap[K, V]) Put(key K, val V) (ok bool) {
 func NewChMap[K comparable, V any](cap int) (ChanMap[K, V], map[K]V) {
 	innerMap := make(map[K]V, cap)
 	return ChanMap[K, V]{
-		Cap:  cap,
+		cap:  cap,
 		Del:  make(chan K, 2*cap), //避免阻塞
 		map0: innerMap,
 	}, innerMap
