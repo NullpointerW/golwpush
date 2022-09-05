@@ -10,6 +10,8 @@ const (
 	FilePrefixTimeLayout = "2006-01-02_150405"
 )
 
+var TimeLoc, _ = time.LoadLocation("Asia/Shanghai")
+
 func GenerateId(origin uint64) string {
 	return strconv.FormatUint(origin, 10) +
 		":" +

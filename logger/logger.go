@@ -2,12 +2,12 @@ package logger
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -70,7 +70,7 @@ const (
 type Level bool
 
 var (
-	std   = log.New(io.MultiWriter(os.Stderr, createFile()), "", log.Ldate|log.Ltime|log.Lshortfile)
+	std   = log.New(createFile(), "", log.Ldate|log.Ltime|log.Lshortfile)
 	color = runtime.GOOS != "windows"
 	Env   = Dev
 	mu    = sync.Mutex{}
@@ -93,6 +93,7 @@ var (
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	go cleaner(time.Minute * 1)
 }
 
 func Errorf(format string, v ...any) {

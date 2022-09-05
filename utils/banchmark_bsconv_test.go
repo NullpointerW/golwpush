@@ -50,14 +50,16 @@ func BenchmarkBcsCharConst(b *testing.B) {
 //	}
 //}
 
-func BenchmarkBcsChar(b *testing.B) {
+func BenchmarkBcsCharNew(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_ = string(cha)
+		_ = BcsChar(cha)
+		//fmt.Println(s + "vc")
 	}
 }
 
-//func BenchmarkBcsCharNew(b *testing.B) {
-//	for i := 0; i < b.N; i++ {
-//		_ = BcsChar(cha)
-//	}
-//}
+func BenchmarkBcsChar(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = string(cha)
+		//fmt.Println(s)
+	}
+}

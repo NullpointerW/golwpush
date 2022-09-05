@@ -15,10 +15,13 @@ func Bcs(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// BcsChar can not use with operation '+' because it will cause unexpected fault address
-//func BcsChar(b byte) string {
-//	return *(*string)(unsafe.Pointer(&b))
-//}
+// BcsChar  converts a byte to string without memory allocation.
+func BcsChar(b byte) (s string) {
+	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	sh.Len = 1
+	sh.Data = uintptr(unsafe.Pointer(&b))
+	return
+}
 
 // Scb converts string to a byte slice without memory allocation.
 //

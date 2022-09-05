@@ -10,8 +10,8 @@ type Reader interface {
 }
 
 type TcpReader struct {
-	Buffer []byte
-	WPos   int
+	Buf  []byte
+	WPos int
 	net.Conn
 }
 
@@ -28,13 +28,13 @@ func (r *TcpReader) Read() (msg string, err error) {
 		goto bufPull
 	}
 netPull:
-	length, tcpErr = r.Conn.Read(r.Buffer[r.WPos:])
+	length, tcpErr = r.Conn.Read(r.Buf[r.WPos:])
 	if tcpErr != nil {
 		return msg, tcpErr
 	}
 	rPos = length + r.WPos
 bufPull:
-	msg, retry, err = protocol.Unpack(r.Buffer[:rPos], &r.WPos, jmp)
+	msg, retry, err = protocol.Unpack(r.Buf[:rPos], &r.WPos, jmp)
 	if err != nil {
 		return msg, err
 	}

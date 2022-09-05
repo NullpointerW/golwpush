@@ -231,7 +231,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 	conn := &Conn{
 		Id:        id,
 		tcpConn:   tcpConn,
-		tcpReader: &netrw.TcpReader{Buffer: make([]byte, pkg.MaxLen), Conn: tcpConn},
+		tcpReader: &netrw.TcpReader{Buf: make([]byte, pkg.MaxLen), Conn: tcpConn},
 		wch:       wch,
 		errMsg:    errCh,
 		Addr:      &ConnAddr{tcpConn.RemoteAddr(), id},
