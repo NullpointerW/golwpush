@@ -224,7 +224,7 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 }
 
 func newClient(tcpConn net.Conn, id uint64) {
-	wch := make(chan pkg.SendMarshal, 1024)
+	wch := make(chan pkg.SendMarshal, 2048)
 	errCh := make(chan error, 5)
 	seq := atomic.Value{}
 	seq.Store(uint64(0))

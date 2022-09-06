@@ -3,7 +3,6 @@ package protocol
 import (
 	"encoding/binary"
 	"github.com/NullpointerW/golwpush/errs"
-	"github.com/NullpointerW/golwpush/logger"
 	"github.com/NullpointerW/golwpush/pkg"
 	"io"
 	"net"
@@ -21,11 +20,11 @@ func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
 			msg = string(b[:i])
 			if len(b) == i+1 {
 				*wIdx = 0
-				logger.Debug("after:" + string(b))
+				//logger.Debug("after:" + string(b))
 				return
 			}
 			*wIdx = copy(b, b[i+1:])
-			logger.Debug("after:" + string(b))
+			//logger.Debug("after:" + string(b))
 			return
 		}
 	}

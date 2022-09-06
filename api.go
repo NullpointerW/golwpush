@@ -28,7 +28,13 @@ func (p defaultPush) Push(id uint64, msg string) (err error) {
 }
 
 func (p defaultPush) Broadcast(broadMsg string) (err error) {
-	Broadcast <- broadMsg
+	select {
+	case Broadcast <- broadMsg: //限流
+
+	default:
+		// TODO log
+	}
+
 	return
 }
 

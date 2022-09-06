@@ -15,16 +15,15 @@ func init() {
 	logger.ModifyLv(logger.Dev)
 }
 func main() {
-	for {
-		for i := 1; i <= 1; i++ {
-			uid := uint64(i)
-			go exec(uid)
-		}
+	for i := 1; i <= 500; i++ {
+		uid := uint64(i)
+		go exec(uid)
 	}
+	select {}
 }
 
 func exec(uid uint64) {
-	conn, err := net.Dial("tcp", "localhost:9001")
+	conn, err := net.Dial("tcp", "localhost:9000")
 	if err != nil {
 		logger.Fatal(err)
 	}

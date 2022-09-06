@@ -11,8 +11,8 @@ import (
 func main() {
 	url := "http://localhost:8000/broadcast"
 	var wg sync.WaitGroup
-	wg.Add(5000)
-	for i := 0; i < 5000; i++ {
+	wg.Add(2000)
+	for i := 0; i < 2000; i++ {
 		go func(seq int) {
 			resp, err := http.Post(url, "text/xml",
 				strings.NewReader("push-testing"+strconv.Itoa(seq)))

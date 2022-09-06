@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 )
 
 const (
@@ -93,7 +92,7 @@ var (
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	go cleaner(time.Minute * 1)
+	//go cleaner(time.Minute * 1)
 }
 
 func Errorf(format string, v ...any) {

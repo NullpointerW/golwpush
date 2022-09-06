@@ -29,7 +29,7 @@ var (
 	ConnAddCh    chan<- *Conn     = connAddCh0
 	connRmCh0    chan *Conn       = make(chan *Conn)
 	ConnRmCh     chan<- *Conn     = connRmCh0
-	broadcast0   chan string      = make(chan string, 1024)
+	broadcast0   chan string      = make(chan string, 2048)
 	Broadcast    chan<- string    = broadcast0
 	multiPushCh0 chan *Contents   = make(chan *Contents, 1024)
 	MultiPushCh  chan<- *Contents = multiPushCh0
