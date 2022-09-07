@@ -62,8 +62,15 @@ clean:
 	}
 	for {
 		time.Sleep(d)
-		changeFile()
+		//changeFile()
 		goto clean
+	}
+}
+
+func chLogFile(d time.Duration) {
+	for {
+		time.Sleep(d)
+		changeFile()
 	}
 }
 

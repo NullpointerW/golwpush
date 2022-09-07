@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -69,7 +70,7 @@ const (
 type Level bool
 
 var (
-	std   = log.New(createFile(), "", log.Ldate|log.Ltime|log.Lshortfile)
+	std   = log.New(createFile(), "", log.Ldate|log.Ltime|log.Lshortfile|log.Lmicroseconds)
 	color = runtime.GOOS != "windows"
 	Env   = Dev
 	mu    = sync.Mutex{}
@@ -92,7 +93,8 @@ var (
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	//go cleaner(time.Minute * 1)
+	go cleaner(time.Hour * 3)
+	go chLogFile(time.Hour * 1)
 }
 
 func Errorf(format string, v ...any) {
