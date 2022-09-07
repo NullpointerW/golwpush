@@ -15,7 +15,7 @@ func init() {
 	logger.ModifyLv(logger.Dev)
 }
 func main() {
-	for i := 1; i <= 500; i++ {
+	for i := 1; i <= 1; i++ {
 		uid := uint64(i)
 		go exec(uid)
 	}

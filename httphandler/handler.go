@@ -33,11 +33,13 @@ func (h Handler) Push(w http.ResponseWriter, req *http.Request) {
 
 func (h Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 	_msg, _ := ioutil.ReadAll(req.Body)
+	//t := time.Now()
 	err := h.Adapter.Broadcast(utils.Bcs(_msg))
 	if err != nil {
 		respSrvErr(w, err)
 		return
 	}
+	//logger.Debugf("gol:%d", time.Now().Sub(t).Milliseconds())
 	respOk(w, "ok")
 }
 

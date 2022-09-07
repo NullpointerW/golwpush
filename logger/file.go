@@ -74,7 +74,7 @@ func changeFile() {
 	if ok {
 		err := cls.fd.Close()
 		if err != nil {
-			Error("close log err:%s", err.Error())
+			Errorf("close log err:%s", err.Error())
 		}
 	}
 	std.SetOutput(io.MultiWriter(os.Stderr, createFile()))

@@ -76,7 +76,7 @@ func HeartbeatCheck(pushCli PushCli) {
 	} else {
 		cli = conv
 	}
-	t := time.NewTimer(time.Second * 60)
+	t := time.NewTimer(time.Minute * 2)
 	defer t.Stop()
 	for {
 		select {
@@ -92,7 +92,7 @@ func HeartbeatCheck(pushCli PushCli) {
 					logger.PfNUid(logger.PongOutput|logger.Host, cli.tcpConn.RemoteAddr().String(), "recved pong")
 				})
 
-			t.Reset(time.Second * 60)
+			t.Reset(time.Minute * 2)
 		}
 	}
 }

@@ -83,7 +83,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	ackBuf, ackBuf0 := utils.NewChMap[string, ackPeek](10000) //max 10000
 	pingCh := make(chan struct{}, 100)
 	ctx, cancel := context.WithCancel(context.Background())
-	rHandler := make(chan string, 1024)
+	rHandler := make(chan string, 2048)
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
 	go func(ctx context.Context) {
 		for {
@@ -159,10 +159,6 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			if msg.Mode == pkg.MSG {
 				//TODO ACK
 				pending, ack := context.WithCancel(context.Background())
-				//ackBuf0[msg.MsgId] = ackPeek{
-				//	ack:            ack,
-				//	actualSendTime: time.Now(),
-				//}
 				if ok := ackBuf.Put(msg.MsgId, ackPeek{
 					ack:            ack,
 					actualSendTime: time.Now(),

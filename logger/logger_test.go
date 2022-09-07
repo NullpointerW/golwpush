@@ -2,8 +2,8 @@ package logger
 
 import (
 	"fmt"
-	"log"
 	"testing"
+	"time"
 )
 
 var host = "192.168.199:3041"
@@ -60,17 +60,21 @@ func TestError(t *testing.T) {
 }
 
 func TestCustomPrint(t *testing.T) {
-	PlnWAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
-	Println(Kick|Ping|Cli|Host|Msg, 0, "", "testing for 3")
-	PfWAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
-	Printf(Kick|Ping|Uid|Msg|Srv, uid, host, "testing for %d", 3)
-	PfNAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
-	PfNUid(Kick|Ping|Addr|Msg|Srv, host, "testing for %d", 3)
-	log.Print("log")
+	/*	PlnWAddr(Kick|Ping|Cli|Msg|Srv, uid, host, "testing for 3")
+		Println(Kick|Ping|Cli|Host|Msg, 0, "", "testing for 3")
+		PfWAddr(Kick|Ping|Cli|Msg|Srv, 0, host, "testing for %d", uint64(3))
+		Printf(Kick|Ping|Uid|Msg|Srv, uid, host, "testing for %d", 3)
+		PfNAddr(Kick|Ping|Addr|Msg|Srv, "testing for %d", 3)
+		PfNUid(Kick|Ping|Addr|Msg|Srv, host, "testing for %d", 3)
+		log.Print("log")*/
 	//PlnWAddr(L_Info|Kick|Ping|Cli|Host|Msg|Srv, 0, host, "testing")
 	//PlnWAddr(PingErrOutput|Cli|Uid, uid, host, "testing")
 
-	fmt.Printf("%b\n", L_Fatal)
+	//fmt.Printf("%b\n", L_Fatal)
+	ti := time.Now()
+	Debugf("de:%d", int64(64))
+	time.Sleep(time.Second * 1)
+	Debugf("encode:%d", time.Now().Sub(ti).Milliseconds())
 }
 
 func TestConstVal(t *testing.T) {

@@ -7,9 +7,11 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"runtime"
 )
 
 func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	logger.ModifyLv(logger.Dev)
 }
 

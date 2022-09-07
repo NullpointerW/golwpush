@@ -1,6 +1,8 @@
 package golwpush
 
-import "github.com/NullpointerW/golwpush/pkg"
+import (
+	"github.com/NullpointerW/golwpush/pkg"
+)
 
 type Contents struct {
 	Ids []uint64 `json:"ids"`
@@ -16,9 +18,15 @@ func (c Contents) pkg() *pkg.Package {
 }
 
 func broadcaster(broadMsg *pkg.Package) {
+	//t := time.Now()
 	for _, conn := range conns {
-		conn.write(broadMsg)
+		c := conn
+		go func(p pkg.Package) {
+			c.write(&p)
+		}(*broadMsg)
+
 	}
+	//logger.Debugf("encode:%d", time.Now().Sub(t).Milliseconds())
 }
 
 func multiSend(broadMsg *pkg.Package, ids []uint64, res chan uint64) {
