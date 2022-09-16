@@ -66,7 +66,7 @@ func (cli *client) PongRecv() {
 	cli.pongCh <- struct{}{}
 }
 
-func HeartbeatCheck(pushCli PushCli) {
+func HeartbeatCheck(pushCli PushCli, reset chan struct{}) {
 	var (
 		cli *client
 	)
@@ -76,7 +76,7 @@ func HeartbeatCheck(pushCli PushCli) {
 	} else {
 		cli = conv
 	}
-	t := time.NewTimer(time.Minute * 2)
+	t := time.NewTimer(time.Minute * 1)
 	defer t.Stop()
 	for {
 		select {
@@ -91,8 +91,9 @@ func HeartbeatCheck(pushCli PushCli) {
 				func() {
 					logger.PfNUid(logger.PongOutput|logger.Host, cli.tcpConn.RemoteAddr().String(), "recved pong")
 				})
-
-			t.Reset(time.Minute * 2)
+			t.Reset(time.Minute * 1)
+		case <-reset:
+			t.Reset(time.Minute * 1)
 		}
 	}
 }

@@ -82,6 +82,7 @@ func (conn *Conn) incrSeq() uint64 { //cas 获取发送序列
 func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn net.Conn, conn *Conn) {
 	ackBuf, ackBuf0 := utils.NewChMap[string, ackPeek](10000) //max 10000
 	pingCh := make(chan struct{}, 100)
+	reset := make(chan struct{}, 100) //心跳重置
 	ctx, cancel := context.WithCancel(context.Background())
 	rHandler := make(chan string, 2048)
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
@@ -97,6 +98,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 				}
 				switch p.Mode {
 				case pkg.ACK:
+					reset <- struct{}{}
 					ackBuf.Del <- p.Id
 					logger.Infof("ack from cli %s,msg id:%s", conn.Addr.String(), p.Id)
 				case pkg.PING:
@@ -144,6 +146,8 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 				return
 			case <-pingCh:
 				wch <- pkg.PongMarshaled
+				t.Reset(time.Minute * 1)
+			case <-reset:
 				t.Reset(time.Minute * 1)
 			}
 		}

@@ -11,16 +11,18 @@ import (
 
 func main() {
 	url := "http://localhost:8000/broadcast"
-	var do = 2000
+	var do = 20
 	var wg sync.WaitGroup
 	wg.Add(do)
 	t := time.Now()
 	for i := 0; i < do; i++ {
 		go func(seq int) {
-			_, err := http.Post(url, "text/xml",
-				strings.NewReader("push-testing"+strconv.Itoa(seq)))
-			if err != nil {
-				fmt.Println(err)
+			for i := 0; i < 50; i++ {
+				_, err := http.Post(url, "text/xml",
+					strings.NewReader("push-testing"+strconv.Itoa(seq)+":"+strconv.Itoa(i)))
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
 			//} else {
 			//	fmt.Println(resp)

@@ -15,7 +15,7 @@ func init() {
 	logger.ModifyLv(logger.Dev)
 }
 func main() {
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 500; i++ {
 		uid := uint64(i)
 		go exec(uid)
 	}
@@ -35,8 +35,9 @@ func exec(uid uint64) {
 	pCli, _ := cli.NewClient(conn, uint64(uid))
 	defer pCli.Close()
 	pCli.Auth()
+	reset := make(chan struct{}, 100)
 	go cli.SendHeartbeat(pCli)
-	go cli.HeartbeatCheck(pCli)
+	go cli.HeartbeatCheck(pCli, reset)
 
 	for {
 		msg, err := pCli.Read()
@@ -53,6 +54,7 @@ func exec(uid uint64) {
 		case pkg.PONG:
 			pCli.PongRecv()
 		case pkg.MSG:
+			reset <- struct{}{}
 			logger.PlnNUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), tPkg.Data)
 			recvTime := time.Now().Format(utils.TimeParseLayout)
 			raw, _ := json.Marshal(&pkg.Package{Mode: pkg.ACK, Id: tPkg.Id, Data: recvTime}) //ack 确认

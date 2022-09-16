@@ -72,7 +72,7 @@ type Level bool
 var (
 	std   = log.New(createFile(), "", log.Ldate|log.Ltime|log.Lshortfile|log.Lmicroseconds)
 	color = runtime.GOOS != "windows"
-	Env   = Dev
+	env   = Dev
 	mu    = sync.Mutex{}
 	red   = func(s string) string {
 		return fmt.Sprintf("\x1b[%dm%s\x1b[0m", colorRed, s)
@@ -199,7 +199,7 @@ func Info(v ...any) {
 func Debugf(format string, v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	if Env {
+	if env {
 		p := debugPrefix
 		p = strings.TrimSpace(p)
 		if color {
@@ -213,7 +213,7 @@ func Debugf(format string, v ...any) {
 func Debug(v ...any) {
 	mu.Lock()
 	defer mu.Unlock()
-	if Env {
+	if env {
 		p := debugPrefix
 		p = strings.TrimSpace(p)
 		if color {
@@ -273,7 +273,7 @@ func Printf(cFlag uint16, uid uint64, host string, format string, v ...any) {
 
 func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...any) {
 	mu.Lock()
-	if !Env && cFlag&L_Debug != 0 { //prod
+	if !env && cFlag&L_Debug != 0 { //prod
 		mu.Unlock()
 		return
 	}
@@ -288,58 +288,58 @@ func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...
 	if lFlag := cFlag & L_Bs; lFlag != 0 {
 		switch lFlag {
 		case L_Fatal:
-			prefix += colorF(strings.TrimSuffix(fatalPrefix, " "), red)
+			prefix += colorFmt(strings.TrimSuffix(fatalPrefix, " "), red)
 			fatal = true
 		case L_Err:
-			prefix += colorF(strings.TrimSuffix(errorPrefix, " "), magenta)
+			prefix += colorFmt(strings.TrimSuffix(errorPrefix, " "), magenta)
 		case L_Warn:
-			prefix += colorF(strings.TrimSuffix(warnPrefix, " "), yellow)
+			prefix += colorFmt(strings.TrimSuffix(warnPrefix, " "), yellow)
 		case L_Info:
-			prefix += colorF(strings.TrimSuffix(infoPrefix, " "), green)
+			prefix += colorFmt(strings.TrimSuffix(infoPrefix, " "), green)
 		case L_Debug:
-			prefix += colorF(strings.TrimSuffix(debugPrefix, " "), blue)
+			prefix += colorFmt(strings.TrimSuffix(debugPrefix, " "), blue)
 		default:
-			prefix += colorF(strings.TrimSuffix(infoPrefix, " "), green)
+			prefix += colorFmt(strings.TrimSuffix(infoPrefix, " "), green)
 		}
 	}
 	if cFlag&Ack != 0 {
-		prefix += strings.TrimSpace(colorF(ackPrefix, green))
+		prefix += strings.TrimSpace(colorFmt(ackPrefix, green))
 	}
 	if cFlag&(Ping|Pong) != 0 {
 		cFlag &^= HeartBeat
 	}
 	if cFlag&HeartBeat != 0 {
-		prefix += strings.TrimSpace(colorF(hbPrefix, green))
+		prefix += strings.TrimSpace(colorFmt(hbPrefix, green))
 	}
 	if cFlag&Ping != 0 {
-		prefix += strings.TrimSpace(colorF(pingPrefix, green))
+		prefix += strings.TrimSpace(colorFmt(pingPrefix, green))
 	}
 	if cFlag&Pong != 0 {
-		prefix += strings.TrimSpace(colorF(pongPrefix, green))
+		prefix += strings.TrimSpace(colorFmt(pongPrefix, green))
 	}
 	if cFlag&Kick != 0 {
-		prefix += strings.TrimSpace(colorF(kickPrefix, magenta))
+		prefix += strings.TrimSpace(colorFmt(kickPrefix, magenta))
 	}
 	if cFlag&Login != 0 {
-		prefix += strings.TrimSpace(colorF(loginPrefix, green))
+		prefix += strings.TrimSpace(colorFmt(loginPrefix, green))
 	}
 	if cFlag&Msg != 0 {
-		prefix += strings.TrimSpace(colorF(msgPrefix, green))
+		prefix += strings.TrimSpace(colorFmt(msgPrefix, green))
 	}
 	if cFlag&Cli != 0 {
 		cFlag = cFlag &^ Srv
-		prefix += strings.TrimSpace(colorF(cliPrefix, blue))
+		prefix += strings.TrimSpace(colorFmt(cliPrefix, blue))
 	}
 	if cFlag&Srv != 0 {
-		prefix += strings.TrimSpace(colorF(srvPrefix, yellow))
+		prefix += strings.TrimSpace(colorFmt(srvPrefix, yellow))
 	}
 	if cFlag&Addr != 0 {
 		if cFlag&Uid != 0 && cFlag&Host != 0 {
-			prefix += strings.TrimSpace(colorF(fmt.Sprintf(uidHostPrefix, uid, host), yellow))
+			prefix += strings.TrimSpace(colorFmt(fmt.Sprintf(uidHostPrefix, uid, host), yellow))
 		} else if cFlag&Uid != 0 {
-			prefix += strings.TrimSpace(colorF(fmt.Sprintf(uidPrefix, uid), yellow))
+			prefix += strings.TrimSpace(colorFmt(fmt.Sprintf(uidPrefix, uid), yellow))
 		} else {
-			prefix += strings.TrimSpace(colorF(fmt.Sprintf(addrPrefix, host), yellow))
+			prefix += strings.TrimSpace(colorFmt(fmt.Sprintf(addrPrefix, host), yellow))
 		}
 	}
 	std.SetPrefix(prefix)
@@ -356,10 +356,10 @@ func customPrint(cFlag uint16, _fmt bool, uid uint64, host, format string, v ...
 func ModifyLv(lv Level) {
 	mu.Lock()
 	defer mu.Unlock()
-	Env = lv
+	env = lv
 }
 
-func colorF(s string, f func(s string) string) string {
+func colorFmt(s string, f func(s string) string) string {
 	if color {
 		return f(s)
 	}
