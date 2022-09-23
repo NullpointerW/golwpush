@@ -2,12 +2,15 @@ package golwpush
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/NullpointerW/golwpush/errs"
 	"github.com/NullpointerW/golwpush/logger"
 	"github.com/NullpointerW/golwpush/netrw"
+	"github.com/NullpointerW/golwpush/persist"
 	"github.com/NullpointerW/golwpush/pkg"
 	"github.com/NullpointerW/golwpush/protocol"
 	"github.com/NullpointerW/golwpush/utils"
+	"github.com/go-redis/redis"
 	"net"
 	"strconv"
 	"sync/atomic"
@@ -217,9 +220,11 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 	case <-t.C:
 		pds.Del <- id
 		//TODO 消息持久化
+		mem, _ := json.Marshal(p)
+		persist.Redis.ZAdd(persist.RedisKeyPrefix, redis.Z{Score: float64(s.UnixMilli()), Member: mem})
 		logger.Warnf("ack time out,msg id:%s", p.MsgId)
 	case <-ctx.Done():
-		//pds.Del <- id
+
 	}
 }
 
