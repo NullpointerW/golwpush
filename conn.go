@@ -237,16 +237,19 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 func msgRetransmission(conn *Conn, ctx context.Context) {
 	k := persist.KeyCache.Key(strconv.FormatUint(conn.Uid, 10))
 	c := persist.Redis.ZCard(k).Val()
-	pageSize := 5000
-	pageNum := int(math.Ceil(float64(c) / float64(pageSize)))
-	for i := 0; i < pageNum; i++ {
+	size := 5000
+	partition := int(math.Ceil(float64(c) / float64(size)))
+	if partition > 0 {
+		logger.Warnf("uid[%d] msgRetransmission msg num:%d", conn.Uid, c)
+	}
+	for i := 0; i < partition; i++ {
 		var del []interface{}
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			r, err := persist.Redis.ZRange(k, int64(i*pageSize), int64(i*pageSize+pageSize)-1).Result()
-			//r, err := persist.Redis.ZPopMin(k, int64(pageSize)).Result()
+			r, err := persist.Redis.ZRange(k, int64(i*size), int64(i*size+size)-1).Result()
+			//r, err := persist.Redis.ZPopMin(k, int64(size)).Result()
 			if err != nil {
 				//todo
 				return
