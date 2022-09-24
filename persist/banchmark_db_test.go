@@ -2,26 +2,28 @@ package persist
 
 import (
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 )
 
 func BenchmarkNamedkeyCache(b *testing.B) {
-	cache := NamedkeyCache{
+	cache := namedkeyCachev1{
 		sync.Map{},
 		func(uid string) string {
 			return RedisKeyPrefix + uid
 		},
 	}
-	for i := 0; i < 450000; i++ {
+	for i := 0; i < 20000000; i++ {
 		cache.Key(strconv.Itoa(i))
 	}
 	wg := sync.WaitGroup{}
-	wg.Add(900000)
+	wg.Add(20000000)
 	b.ResetTimer()
-	for i := 0; i < 900000; i++ {
+	for i := 0; i < 20000000; i++ {
 		go func(i int) {
-			cache.Key(strconv.Itoa(i))
+			str := cache.Key(strconv.Itoa(i))
+			strings.Split(str, ".")
 			wg.Done()
 		}(i)
 	}
@@ -29,32 +31,39 @@ func BenchmarkNamedkeyCache(b *testing.B) {
 }
 
 func BenchmarkNamedkeyCacheV2(b *testing.B) {
-	cache := NamedkeyCacheV2{
+	cache := namedkeyCachev2{
 		sync.RWMutex{},
-		make(map[string]string, 500),
+		make(map[string]string, 20000000),
 		func(uid string) string {
 			return RedisKeyPrefix + uid
 		},
 	}
-	for i := 0; i < 450000; i++ {
+	for i := 0; i < 20000000; i++ {
 		cache.Key(strconv.Itoa(i))
 	}
 	wg := sync.WaitGroup{}
-	wg.Add(900000)
+	wg.Add(20000000)
 	b.ResetTimer()
-	for i := 0; i < 900000; i++ {
+	for i := 0; i < 20000000; i++ {
 		go func(i int) {
-			cache.Key(strconv.Itoa(i))
+			str := cache.Key(strconv.Itoa(i))
+			strings.Split(str, ".")
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
 }
 
-//func BenchmarkNonNamedkeyCache(b *testing.B) {
-//
-//	b.ResetTimer()
-//	for i := 0; i < 9000000; i++ {
-//		_ = RedisKeyPrefix + strconv.Itoa(i)
-//	}
-//}
+func BenchmarkNonNamedkeyCache(b *testing.B) {
+	wg := sync.WaitGroup{}
+	wg.Add(20000000)
+	b.ResetTimer()
+	for i := 0; i < 20000000; i++ {
+		go func(i int) {
+			str := RedisKeyPrefix + strconv.Itoa(i)
+			strings.Split(str, ".")
+			wg.Done()
+		}(i)
+	}
+	wg.Wait()
+}

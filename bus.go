@@ -48,18 +48,18 @@ func Handle() {
 				conns[content.Id].write(content.pkg())
 			}
 		case conn := <-connAddCh0:
-			if _, exist := conns[conn.Id]; exist {
-				conn.errMsg <- errs.NewDuplicateConnIdErr(conn.Id)
+			if _, exist := conns[conn.Uid]; exist {
+				conn.errMsg <- errs.NewDuplicateConnIdErr(conn.Uid)
 				continue
 			}
-			conns[conn.Id] = conn
+			conns[conn.Uid] = conn
 			now := time.Now().Format(utils.TimeParseLayout)
 			storeConnNum(uint64(len(conns)))
-			connInfos[conn.Id] = ConnInfo{conn.Id, conn.tcpConn.RemoteAddr().String(), now}
+			connInfos[conn.Uid] = ConnInfo{conn.Uid, conn.tcpConn.RemoteAddr().String(), now}
 		case conn := <-connRmCh0:
-			delete(conns, conn.Id)
+			delete(conns, conn.Uid)
 			storeConnNum(uint64(len(conns)))
-			delete(connInfos, conn.Id)
+			delete(connInfos, conn.Uid)
 		case msg := <-broadcast0:
 			//logger.Debug(len(conns))
 			broadcaster(&pkg.Package{Mode: pkg.MSG,

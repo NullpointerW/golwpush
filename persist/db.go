@@ -10,19 +10,24 @@ import (
 var (
 	Redis          *redis.Client
 	RedisKeyPrefix = "golwpush."
+	KeyCache       NamedkeyCache
 )
 
-type NamedkeyCache struct {
+type NamedkeyCache interface {
+	Key(string) string
+}
+
+type namedkeyCachev1 struct {
 	pool    sync.Map
 	putfunc func(basekey string) string
 }
-type NamedkeyCacheV2 struct {
+type namedkeyCachev2 struct {
 	mu      sync.RWMutex
 	pool    map[string]string
-	putfunc func(basekey string) string
+	putfunc func(string) string
 }
 
-func (c *NamedkeyCacheV2) Key(k string) string {
+func (c *namedkeyCachev2) Key(k string) string {
 	c.mu.RLock()
 	if v, e := c.pool[k]; e {
 		c.mu.RUnlock()
@@ -36,7 +41,7 @@ func (c *NamedkeyCacheV2) Key(k string) string {
 	return r
 }
 
-func (c *NamedkeyCache) Key(k string) string {
+func (c *namedkeyCachev1) Key(k string) string {
 	if v, e := c.pool.Load(k); e {
 		k, _ = v.(string)
 		return k
@@ -57,4 +62,11 @@ func init() {
 		logger.Fatal(err.Error())
 	}
 	logger.Infof("redis connected,conn pool num:%d", runtime.NumCPU()*10)
+	KeyCache = &namedkeyCachev2{
+		sync.RWMutex{},
+		make(map[string]string),
+		func(uid string) string {
+			return RedisKeyPrefix + uid
+		},
+	}
 }

@@ -29,6 +29,7 @@ type Package struct {
 }
 
 type SendMarshal struct {
+	//Uid       uint64 `json:"-"`
 	MsgId     string `json:"id"`
 	Marshaled string `json:"marshaled"`
 	Mode      Typ    `json:"mode"`

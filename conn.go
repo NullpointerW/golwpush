@@ -11,6 +11,7 @@ import (
 	"github.com/NullpointerW/golwpush/protocol"
 	"github.com/NullpointerW/golwpush/utils"
 	"github.com/go-redis/redis"
+	"math"
 	"net"
 	"strconv"
 	"sync/atomic"
@@ -18,7 +19,7 @@ import (
 )
 
 type Conn struct {
-	Id      uint64
+	Uid     uint64
 	tcpConn net.Conn
 	/*readBuf []byte
 	wBufPos int*/
@@ -47,8 +48,8 @@ func (c *ConnAddr) Uid() uint64 {
 }
 
 func (conn *Conn) write(msg *pkg.Package) {
-	msg.Id = utils.GenerateId(conn.Id) + strconv.FormatUint(conn.incrSeq(), 10) //生成消息id
-	marshaled, err := msg.MarshalToSend()                                       //避免在写goroutine中编码
+	msg.Id = utils.GenerateId(conn.Uid) + strconv.FormatUint(conn.incrSeq(), 10) //生成消息id
+	marshaled, err := msg.MarshalToSend()                                        //避免在写goroutine中编码
 	if err != nil {
 		conn.errMsg <- err
 		return
@@ -156,6 +157,8 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 		}
 	}(ctx)
 
+	go msgRetransmission(conn, ctx)
+
 	var (
 		err error
 	)
@@ -170,7 +173,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 					ack:            ack,
 					actualSendTime: time.Now(),
 				}); ok {
-					go ackPipeline(pending, ackBuf, msg.MsgId, msg, ackBuf0[msg.MsgId].actualSendTime)
+					go ackPipeline(pending, ackBuf, msg.MsgId, msg, ackBuf0[msg.MsgId].actualSendTime, conn.Uid)
 					//continue
 				} else {
 					err = errs.AckBuffCapLimit
@@ -213,7 +216,9 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	conn.close()
 	cancelFunc()
 }
-func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal, s time.Time) {
+
+func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal,
+	s time.Time, uid uint64) {
 	t := time.NewTimer(time.Second * 30)
 	defer t.Stop()
 	select {
@@ -221,10 +226,42 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 		pds.Del <- id
 		//TODO 消息持久化
 		mem, _ := json.Marshal(p)
-		persist.Redis.ZAdd(persist.RedisKeyPrefix, redis.Z{Score: float64(s.UnixMilli()), Member: mem})
+		persist.Redis.ZAdd(persist.KeyCache.Key(strconv.FormatUint(uid, 10)), redis.Z{Score: float64(s.UnixMilli()),
+			Member: mem})
 		logger.Warnf("ack time out,msg id:%s", p.MsgId)
 	case <-ctx.Done():
+		return
+	}
+}
 
+func msgRetransmission(conn *Conn, ctx context.Context) {
+	k := persist.KeyCache.Key(strconv.FormatUint(conn.Uid, 10))
+	c := persist.Redis.ZCard(k).Val()
+	pageSize := 5000
+	pageNum := int(math.Ceil(float64(c) / float64(pageSize)))
+	for i := 0; i < pageNum; i++ {
+		var del []interface{}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			r, err := persist.Redis.ZRange(k, int64(i*pageSize), int64(i*pageSize+pageSize)-1).Result()
+			if err != nil {
+				//todo
+				return
+			}
+			for _, jsonRaw := range r {
+				var p pkg.SendMarshal
+				err = json.Unmarshal(utils.Scb(jsonRaw), &p)
+				if err != nil {
+					//todo handle
+					return
+				}
+				conn.wch <- p
+				del = append(del, jsonRaw)
+			}
+		}
+		persist.Redis.ZRem(k, del)
 	}
 }
 
@@ -234,7 +271,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 	seq := atomic.Value{}
 	seq.Store(uint64(0))
 	conn := &Conn{
-		Id:        id,
+		Uid:       id,
 		tcpConn:   tcpConn,
 		tcpReader: &netrw.TcpReader{Buf: make([]byte, pkg.MaxLen), Conn: tcpConn},
 		wch:       wch,
