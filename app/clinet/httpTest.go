@@ -17,7 +17,7 @@ func main() {
 	t := time.Now()
 	for i := 0; i < do; i++ {
 		go func(seq int) {
-			for i := 0; i < 50; i++ {
+			for i := 0; i < 2; i++ {
 				_, err := http.Post(url, "text/xml",
 					strings.NewReader("push-testing"+strconv.Itoa(seq)+":"+strconv.Itoa(i)))
 				if err != nil {

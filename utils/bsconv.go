@@ -15,8 +15,8 @@ func Bcs(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// BcsChar  converts a byte to string without memory allocation.
-func BcsChar(b byte) (s string) {
+// BcChar  converts a byte to string without memory allocation.
+func BcChar(b byte) (s string) {
 	sh := (*reflect.StringHeader)(unsafe.Pointer(&s))
 	sh.Len = 1
 	sh.Data = uintptr(unsafe.Pointer(&b))

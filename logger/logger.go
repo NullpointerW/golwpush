@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -92,6 +93,14 @@ var (
 )
 
 func init() {
+	logoPath := "cfg/logo.txt"
+	f, err := os.Open(logoPath)
+	if err == nil {
+		b, err := io.ReadAll(f)
+		if err == nil {
+			fmt.Println(string(b))
+		}
+	}
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	go cleaner(time.Hour * 3)
 	go chLogFile(time.Hour * 1)
