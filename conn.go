@@ -246,11 +246,16 @@ func msgRetransmission(conn *Conn, ctx context.Context) {
 			return
 		default:
 			r, err := persist.Redis.ZRange(k, int64(i*pageSize), int64(i*pageSize+pageSize)-1).Result()
+			//r, err := persist.Redis.ZPopMin(k, int64(pageSize)).Result()
 			if err != nil {
 				//todo
 				return
 			}
 			for _, jsonRaw := range r {
+				//jsonRaw, ok := z.Member.(string)
+				//if !ok {
+				//	return
+				//}
 				var p pkg.SendMarshal
 				err = json.Unmarshal(utils.Scb(jsonRaw), &p)
 				if err != nil {
@@ -261,7 +266,7 @@ func msgRetransmission(conn *Conn, ctx context.Context) {
 				del = append(del, jsonRaw)
 			}
 		}
-		persist.Redis.ZRem(k, del)
+		persist.Redis.ZRem(k, del...)
 	}
 }
 
