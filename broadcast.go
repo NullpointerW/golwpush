@@ -3,6 +3,7 @@ package golwpush
 import (
 	"encoding/json"
 	"github.com/NullpointerW/golwpush/pkg"
+	"github.com/NullpointerW/golwpush/protocol"
 )
 
 type lingerBuf struct {
@@ -15,8 +16,11 @@ type lingerBuf struct {
 func (lg *lingerBuf) flush() {
 	lg.size = 0
 	lg.len = 0
-	lg.data = make([]string, 2048)
-	lg.alloc = 2048
+	if lg.alloc > 2048 {
+		lg.data = make([]string, 2048)
+		lg.alloc = 2048
+	}
+
 }
 
 var lgBuf = lingerBuf{
@@ -46,16 +50,13 @@ func broadcaster(broadMsg *pkg.Package) {
 		go func(p pkg.Package) {
 			c.write(&p)
 		}(*broadMsg)
-
 	}
 	//logger.Debugf("encode:%d", time.Now().Sub(t).Milliseconds())
 }
 
 func mergeMsg(msg string) (send bool) {
-	msgLen := len(msg)
-	lgLen := lgBuf.len
-	buf := lgBuf.data
-	if lgBuf.size+msgLen > 1000 {
+	msgLen, lgLen, buf := len(msg), lgBuf.len, lgBuf.data
+	if lgBuf.size+msgLen > (protocol.MaxLen - pkg.MsgModeExtraLen) {
 		lingerSend()
 		lgBuf.data[lgLen] = msg
 		lgBuf.len++
@@ -74,10 +75,11 @@ func mergeMsg(msg string) (send bool) {
 }
 
 func lingerSend() {
-	if lgBuf.len <= 0 || lgBuf.size <= 0 {
+	lgLen, lgSize := lgBuf.len, lgBuf.size
+	if lgLen <= 0 || lgSize <= 0 {
 		return
 	}
-	b, _ := json.Marshal(lgBuf.data[:lgBuf.len])
+	b, _ := json.Marshal(lgBuf.data[:lgLen])
 	msg := string(b)
 	p := &pkg.Package{Mode: pkg.MSG,
 		Data: msg}

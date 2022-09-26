@@ -89,9 +89,10 @@ func Handle() {
 				lingerSend()
 			default:
 			}
-			mergeMsg(msg)
-			//broadcaster(&pkg.Package{Mode: pkg.MSG,
-			//	Data: msg})
+			if mergeMsg(msg) {
+				lingerMs.Reset(time.Millisecond * 100)
+			}
+
 		case contents := <-multiPushCh0:
 			select {
 			case <-lingerMs.C:

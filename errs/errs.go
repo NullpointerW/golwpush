@@ -10,6 +10,8 @@ var (
 
 	UnpackOutOfSize = errors.New("package out of read buffer size")
 
+	SendDataOutOfSize = errors.New("package out of max size")
+
 	SendUidTimeOut = errors.New("send uid timeout")
 
 	ServiceCallTimedOut = errors.New("service has not responded for a long time")

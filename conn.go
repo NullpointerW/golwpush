@@ -92,74 +92,10 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
 	go readHandle(ctx, rHandler, errCh, pingCh, reset, ackBuf)
-	//go func(ctx context.Context) {
-	//	for {
-	//		select {
-	//		case <-ctx.Done():
-	//			return
-	//		case unDec := <-rHandler:
-	//			p, err := pkg.New(unDec)
-	//			if err != nil {
-	//				errCh <- err
-	//			}
-	//			switch p.Mode {
-	//			case pkg.ACK:
-	//				reset <- struct{}{}
-	//				ackBuf.Del <- p.Id
-	//
-	//			case pkg.PING:
-	//				pingCh <- struct{}{}
-	//			}
-	//		}
-	//	}
-	//}(ctx)
 
 	go readLoop(ctx, conn, errCh, rHandler)
-	//go func(ctx context.Context) { //readLoop
-	//	for {
-	//		select {
-	//		case <-ctx.Done():
-	//			return
-	//		default:
-	//			msg, err := conn.read()
-	//			if err != nil {
-	//				//可能导致写入已关闭channel panic
-	//				//解决方法有两种：
-	//				//1.不关闭channel 由gc回收 连接过多时可能会导致效率下降
-	//				//2.使用mutex维护一个关闭状态
-	//				errCh <- err
-	//				return
-	//			}
-	//			rHandler <- msg
-	//		}
-	//	}
-	//}(ctx)
 
 	go heartBeatCheck(ctx, conn, errCh, pingCh, reset, wch)
-	//go func(ctx context.Context) {
-	//	t := time.NewTimer(time.Minute * 1)
-	//	defer t.Stop()
-	//	logger.PlnWAddr(logger.L_Debug|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
-	//		"start heartbeat check") //debug
-	//	for {
-	//		select {
-	//		case <-ctx.Done():
-	//			logger.PlnWAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
-	//				"heartbeat check end") //debug
-	//			return
-	//		case <-t.C:
-	//			logger.PlnWAddr(logger.L_Warn|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
-	//				"Heartbeat timeout 60s...") //debug
-	//			errCh <- errs.HeartbeatTimeout
-	//			return
-	//		case <-pingCh:
-	//			wch <- pkg.PongMarshaled
-	//			t.Reset(time.Minute * 1)
-	//		case <-reset:
-	//			t.Reset(time.Minute * 1)
-	//		}
-	//	}
-	//}(ctx)
 
 	go msgRetransmission(conn, ctx)
 
@@ -186,6 +122,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			}
 			//var n int
 			_, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
+			logger.Infof("send msg:%s len:%d", string(protocol.Pack(msg.Marshaled)), len(protocol.Pack(msg.Marshaled)))
 			//logger.Warn(msg.Marshaled)
 			//logger.Debugf("write %d", n)
 			if err != nil {

@@ -2,6 +2,9 @@ package golwpush
 
 import (
 	"github.com/NullpointerW/golwpush/errs"
+	"github.com/NullpointerW/golwpush/logger"
+	"github.com/NullpointerW/golwpush/pkg"
+	"github.com/NullpointerW/golwpush/protocol"
 	"time"
 )
 
@@ -28,13 +31,16 @@ func (p defaultPush) Push(id uint64, msg string) (err error) {
 }
 
 func (p defaultPush) Broadcast(broadMsg string) (err error) {
+	if len(broadMsg) > (protocol.MaxLen - pkg.MsgModeExtraLen) {
+		err = errs.SendDataOutOfSize
+		return
+	}
 	select {
 	case Broadcast <- broadMsg: //限流
-
 	default:
 		// TODO log
+		logger.Error("request limiting")
 	}
-
 	return
 }
 

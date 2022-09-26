@@ -16,6 +16,8 @@ const (
 	ONLINE
 	KICK
 	ACK
+
+	MsgModeExtraLen = 90
 )
 
 type Package struct {
