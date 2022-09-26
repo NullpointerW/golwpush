@@ -89,73 +89,77 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	reset := make(chan struct{}, 100) //心跳重置
 	ctx, cancel := context.WithCancel(context.Background())
 	rHandler := make(chan string, 2048)
+
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case unDec := <-rHandler:
-				p, err := pkg.New(unDec)
-				if err != nil {
-					errCh <- err
-				}
-				switch p.Mode {
-				case pkg.ACK:
-					reset <- struct{}{}
-					ackBuf.Del <- p.Id
-					logger.Infof("ack from cli %s,msg id:%s", conn.Addr.String(), p.Id)
-				case pkg.PING:
-					pingCh <- struct{}{}
-				}
-			}
-		}
-	}(ctx)
+	go readHandle(ctx, rHandler, errCh, pingCh, reset, ackBuf)
+	//go func(ctx context.Context) {
+	//	for {
+	//		select {
+	//		case <-ctx.Done():
+	//			return
+	//		case unDec := <-rHandler:
+	//			p, err := pkg.New(unDec)
+	//			if err != nil {
+	//				errCh <- err
+	//			}
+	//			switch p.Mode {
+	//			case pkg.ACK:
+	//				reset <- struct{}{}
+	//				ackBuf.Del <- p.Id
+	//
+	//			case pkg.PING:
+	//				pingCh <- struct{}{}
+	//			}
+	//		}
+	//	}
+	//}(ctx)
 
-	go func(ctx context.Context) { //readLoop
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				msg, err := conn.read()
-				if err != nil {
-					//可能导致写入已关闭channel panic
-					//解决方法有两种：
-					//1.不关闭channel 由gc回收 连接过多时可能会导致效率下降
-					//2.使用mutex维护一个关闭状态
-					errCh <- err
-					return
-				}
-				rHandler <- msg
-			}
-		}
-	}(ctx)
+	go readLoop(ctx, conn, errCh, rHandler)
+	//go func(ctx context.Context) { //readLoop
+	//	for {
+	//		select {
+	//		case <-ctx.Done():
+	//			return
+	//		default:
+	//			msg, err := conn.read()
+	//			if err != nil {
+	//				//可能导致写入已关闭channel panic
+	//				//解决方法有两种：
+	//				//1.不关闭channel 由gc回收 连接过多时可能会导致效率下降
+	//				//2.使用mutex维护一个关闭状态
+	//				errCh <- err
+	//				return
+	//			}
+	//			rHandler <- msg
+	//		}
+	//	}
+	//}(ctx)
 
-	go func(ctx context.Context) {
-		t := time.NewTimer(time.Minute * 1)
-		defer t.Stop()
-		logger.PlnWAddr(logger.L_Debug|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
-			"start heartbeat check") //debug
-		for {
-			select {
-			case <-ctx.Done():
-				logger.PlnWAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
-					"heartbeat check end") //debug
-				return
-			case <-t.C:
-				logger.PlnWAddr(logger.L_Warn|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
-					"Heartbeat timeout 60s...") //debug
-				errCh <- errs.HeartbeatTimeout
-				return
-			case <-pingCh:
-				wch <- pkg.PongMarshaled
-				t.Reset(time.Minute * 1)
-			case <-reset:
-				t.Reset(time.Minute * 1)
-			}
-		}
-	}(ctx)
+	go heartBeatCheck(ctx, conn, errCh, pingCh, reset, wch)
+	//go func(ctx context.Context) {
+	//	t := time.NewTimer(time.Minute * 1)
+	//	defer t.Stop()
+	//	logger.PlnWAddr(logger.L_Debug|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
+	//		"start heartbeat check") //debug
+	//	for {
+	//		select {
+	//		case <-ctx.Done():
+	//			logger.PlnWAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
+	//				"heartbeat check end") //debug
+	//			return
+	//		case <-t.C:
+	//			logger.PlnWAddr(logger.L_Warn|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
+	//				"Heartbeat timeout 60s...") //debug
+	//			errCh <- errs.HeartbeatTimeout
+	//			return
+	//		case <-pingCh:
+	//			wch <- pkg.PongMarshaled
+	//			t.Reset(time.Minute * 1)
+	//		case <-reset:
+	//			t.Reset(time.Minute * 1)
+	//		}
+	//	}
+	//}(ctx)
 
 	go msgRetransmission(conn, ctx)
 
@@ -182,7 +186,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			}
 			//var n int
 			_, err = tcpConn.Write(protocol.Pack(msg.Marshaled))
-			logger.Warn(msg.Marshaled)
+			//logger.Warn(msg.Marshaled)
 			//logger.Debugf("write %d", n)
 			if err != nil {
 				goto fatal
@@ -190,6 +194,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 
 		case id := <-ackBuf.Del:
 			if peek, exist := ackBuf0[id]; exist {
+				logger.Infof("ack from cli %s,msg id:%s", conn.Addr.String(), id)
 				peek.ack()
 				delete(ackBuf0, id)
 			}
@@ -216,6 +221,72 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	conn.close()
 	cancelFunc()
 }
+func readHandle(ctx context.Context, rHandler chan string, errCh chan error, pingCh, reset chan struct{}, ackBuf utils.ChanMap[string, ackPeek]) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case unDec := <-rHandler:
+			p, err := pkg.New(unDec)
+			if err != nil {
+				errCh <- err
+			}
+			switch p.Mode {
+			case pkg.ACK:
+				reset <- struct{}{}
+				ackBuf.Del <- p.Id
+
+			case pkg.PING:
+				pingCh <- struct{}{}
+			}
+		}
+	}
+}
+
+func readLoop(ctx context.Context, conn *Conn, errCh chan error, rHandler chan string) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			msg, err := conn.read()
+			if err != nil {
+				//可能导致写入已关闭channel panic
+				//解决方法有两种：
+				//1.不关闭channel 由gc回收 连接过多时可能会导致效率下降
+				//2.使用mutex维护一个关闭状态
+				errCh <- err
+				return
+			}
+			rHandler <- msg
+		}
+	}
+}
+
+func heartBeatCheck(ctx context.Context, conn *Conn, errCh chan error, pingCh, reset chan struct{}, wch chan pkg.SendMarshal) {
+	t := time.NewTimer(time.Minute * 1)
+	defer t.Stop()
+	logger.PlnWAddr(logger.L_Debug|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
+		"start heartbeat check") //debug
+	for {
+		select {
+		case <-ctx.Done():
+			logger.PlnWAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
+				"heartbeat check end") //debug
+			return
+		case <-t.C:
+			logger.PlnWAddr(logger.L_Warn|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
+				"Heartbeat timeout 60s...") //debug
+			errCh <- errs.HeartbeatTimeout
+			return
+		case <-pingCh:
+			wch <- pkg.PongMarshaled
+			t.Reset(time.Minute * 1)
+		case <-reset:
+			t.Reset(time.Minute * 1)
+		}
+	}
+}
 
 func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, V], id K, p pkg.SendMarshal,
 	s time.Time, uid uint64) {
@@ -230,8 +301,12 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 			Member: mem})
 		logger.Warnf("ack time out,msg id:%s", p.MsgId)
 	case <-ctx.Done():
+		logger.Warnf("ack from id:%s", p.MsgId)
 		return
 	}
+}
+func ackAcquire() {
+
 }
 
 func msgRetransmission(conn *Conn, ctx context.Context) {
@@ -281,7 +356,7 @@ func newClient(tcpConn net.Conn, id uint64) {
 	conn := &Conn{
 		Uid:       id,
 		tcpConn:   tcpConn,
-		tcpReader: &netrw.TcpReader{Buf: make([]byte, pkg.MaxLen), Conn: tcpConn},
+		tcpReader: &netrw.TcpReader{Buf: make([]byte, protocol.MaxLen), Conn: tcpConn},
 		wch:       wch,
 		errMsg:    errCh,
 		Addr:      &ConnAddr{tcpConn.RemoteAddr(), id},

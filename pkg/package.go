@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"github.com/NullpointerW/golwpush/protocol"
 	"github.com/NullpointerW/golwpush/utils"
 )
 
@@ -15,10 +16,6 @@ const (
 	ONLINE
 	KICK
 	ACK
-)
-
-var (
-	MaxLen = 1024
 )
 
 type Package struct {
@@ -65,7 +62,7 @@ func (p *Package) MarshalToSend() (SendMarshal, error) {
 	if err != nil {
 		return conv, err
 	}
-	conv.Marshaled = s
+	conv.Marshaled = protocol.CatEndFlag(s)
 	conv.MsgId = p.Id
 	return conv, nil
 }

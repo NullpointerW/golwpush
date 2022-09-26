@@ -5,7 +5,9 @@ import (
 	"github.com/NullpointerW/golwpush/cli"
 	"github.com/NullpointerW/golwpush/logger"
 	"github.com/NullpointerW/golwpush/pkg"
+	"github.com/NullpointerW/golwpush/protocol"
 	"github.com/NullpointerW/golwpush/utils"
+	"log"
 	"math/rand"
 	"net"
 	"time"
@@ -57,8 +59,11 @@ func exec(uid uint64) {
 			reset <- struct{}{}
 			logger.PlnNUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), tPkg.Data)
 			recvTime := time.Now().Format(utils.TimeParseLayout)
-			raw, _ := json.Marshal(&pkg.Package{Mode: pkg.ACK, Id: tPkg.Id, Data: recvTime}) //ack 确认
-			pCli.Write(utils.Bcs(raw))
+			raw, err := json.Marshal(&pkg.Package{Mode: pkg.ACK, Id: tPkg.Id, Data: recvTime}) //ack 确认
+			if err != nil {
+				log.Print(err)
+			}
+			pCli.Write(protocol.CatEndFlag(utils.Bcs(raw)))
 		}
 	}
 
@@ -67,3 +72,8 @@ func fatal(err error, pCli cli.PushCli) {
 	pCli.Close()
 	logger.Fatal(err)
 }
+
+//func rawPack(raw string) string {
+//	raw += string(protocol.EndFlag)
+//	return raw
+//}

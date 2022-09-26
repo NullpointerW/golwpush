@@ -101,7 +101,11 @@ func init() {
 			fmt.Println(string(b))
 		}
 	}
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	flag := log.Ldate | log.Ltime
+	if env {
+		flag |= log.Lshortfile
+	}
+	log.SetFlags(flag)
 	go cleaner(time.Hour * 3)
 	go chLogFile(time.Hour * 1)
 }

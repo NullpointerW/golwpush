@@ -9,7 +9,12 @@ import (
 var heartLen = 2
 
 func Pack(msg string) (b []byte) {
-	return utils.Scb(msg + string(EndFlag))
+	//return utils.Scb(msg + string(EndFlag))
+	return utils.Scb(msg) // msg+'|'
+}
+
+func CatEndFlag(raw string) string {
+	return raw + EndStrFlag
 }
 
 func PackByteStream(contextLen uint16, b []byte) []byte {

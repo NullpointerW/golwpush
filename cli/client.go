@@ -144,7 +144,7 @@ func NewClient(conn net.Conn, id uint64) (cli PushCli, cancelFunc context.Cancel
 	ctx, cancelFunc = context.WithCancel(context.Background())
 	cli = &client{
 		ctx:       ctx,
-		tcpReader: &netrw.TcpReader{Buf: make([]byte, pkg.MaxLen), Conn: conn},
+		tcpReader: &netrw.TcpReader{Buf: make([]byte, protocol.MaxLen), Conn: conn},
 		uid:       id,
 		tcpConn:   conn,
 		cFunc:     cancelFunc,

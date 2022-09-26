@@ -3,13 +3,17 @@ package protocol
 import (
 	"encoding/binary"
 	"github.com/NullpointerW/golwpush/errs"
-	"github.com/NullpointerW/golwpush/pkg"
 	"io"
 	"net"
 )
 
+var (
+	MaxLen = 1024
+)
+
 const (
-	EndFlag byte = '|'
+	EndFlag    byte = '|'
+	EndStrFlag      = string(EndFlag)
 )
 
 func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
@@ -29,7 +33,7 @@ func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
 		}
 	}
 
-	if len(b) == pkg.MaxLen {
+	if len(b) == MaxLen {
 		err = errs.UnpackOutOfSize
 		return
 	}

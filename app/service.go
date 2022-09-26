@@ -12,7 +12,7 @@ import (
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	logger.ModifyLv(logger.Dev)
+	logger.ModifyLv(logger.Prod)
 }
 
 func main() {
