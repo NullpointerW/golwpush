@@ -11,18 +11,24 @@ import (
 
 func main() {
 	url := "http://localhost:8000/broadcast"
-	var do = 20
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns: 400, MaxConnsPerHost: 400,
+		},
+	}
+	var do = 400
 	var wg sync.WaitGroup
 	wg.Add(do)
 	t := time.Now()
 	for i := 0; i < do; i++ {
 		go func(seq int) {
-			for i := 0; i < 4; i++ {
-				_, err := http.Post(url, "text/xml",
+			for i := 0; i < 400; i++ {
+				resp, err := client.Post(url, "text/xml",
 					strings.NewReader("push-testing"+strconv.Itoa(seq)+":"+strconv.Itoa(i)))
 				if err != nil {
 					fmt.Println(err)
 				}
+				resp.Body.Close()
 			}
 			//} else {
 			//	fmt.Println(resp)

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	MaxLen = 1024
+	MaxLen = 10 * 1024
 )
 
 const (

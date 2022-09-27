@@ -25,45 +25,33 @@ func (c Content) pkg() *pkg.Package {
 }
 
 var (
-	connAddCh0   chan *Conn       = make(chan *Conn)
-	ConnAddCh    chan<- *Conn     = connAddCh0
-	connRmCh0    chan *Conn       = make(chan *Conn)
-	ConnRmCh     chan<- *Conn     = connRmCh0
-	broadcast0   chan string      = make(chan string, 2048)
-	Broadcast    chan<- string    = broadcast0
-	multiPushCh0 chan *Contents   = make(chan *Contents, 1024)
-	MultiPushCh  chan<- *Contents = multiPushCh0
-	conns        map[uint64]*Conn = make(map[uint64]*Conn)
-	pushCh0      chan Content     = make(chan Content, 1024)
-	PushCh       chan<- Content   = pushCh0
-	bizCh0       chan BizReq      = make(chan BizReq, 1024)
-	BizCh        chan<- BizReq    = bizCh0
+	connAddCh0   chan *Conn        = make(chan *Conn)
+	ConnAddCh    chan<- *Conn      = connAddCh0
+	connRmCh0    chan *Conn        = make(chan *Conn)
+	ConnRmCh     chan<- *Conn      = connRmCh0
+	broadcast0   chan string       = make(chan string, 2048)
+	Broadcast    chan<- string     = broadcast0
+	mergedMsg    chan *pkg.Package = make(chan *pkg.Package, 1024)
+	multiPushCh0 chan *Contents    = make(chan *Contents, 1024)
+	MultiPushCh  chan<- *Contents  = multiPushCh0
+	conns        map[uint64]*Conn  = make(map[uint64]*Conn)
+	pushCh0      chan Content      = make(chan Content, 1024)
+	PushCh       chan<- Content    = pushCh0
+	bizCh0       chan BizReq       = make(chan BizReq, 1024)
+	BizCh        chan<- BizReq     = bizCh0
 )
 
 func Handle() {
-	lingerMs := time.NewTicker(time.Millisecond * 100)
-	defer lingerMs.Stop()
+
+	go lingerProcess()
 	for {
 		select {
-		case <-lingerMs.C:
-			lingerSend()
-
 		case content := <-pushCh0:
-			select {
-			case <-lingerMs.C:
-				lingerSend()
-			default:
-			}
 			if _, exist := conns[content.Id]; exist {
 				conns[content.Id].write(content.pkg())
 			}
 
 		case conn := <-connAddCh0:
-			select {
-			case <-lingerMs.C:
-				lingerSend()
-			default:
-			}
 			if _, exist := conns[conn.Uid]; exist {
 				conn.errMsg <- errs.NewDuplicateConnIdErr(conn.Uid)
 				continue
@@ -74,39 +62,17 @@ func Handle() {
 			connInfos[conn.Uid] = ConnInfo{conn.Uid, conn.tcpConn.RemoteAddr().String(), now}
 
 		case conn := <-connRmCh0:
-			select {
-			case <-lingerMs.C:
-				lingerSend()
-			default:
-			}
 			delete(conns, conn.Uid)
 			storeConnNum(uint64(len(conns)))
 			delete(connInfos, conn.Uid)
 
-		case msg := <-broadcast0:
-			select {
-			case <-lingerMs.C:
-				lingerSend()
-			default:
-			}
-			if mergeMsg(msg) {
-				lingerMs.Reset(time.Millisecond * 100)
-			}
+		case msg := <-mergedMsg:
+			broadcaster(msg)
 
 		case contents := <-multiPushCh0:
-			select {
-			case <-lingerMs.C:
-				lingerSend()
-			default:
-			}
 			multiSend(contents.pkg(), contents.Ids, contents.Res)
 
 		case req := <-bizCh0:
-			select {
-			case <-lingerMs.C:
-				lingerSend()
-			default:
-			}
 			switch req.Typ {
 			case Info:
 				if info, exist := connInfos[req.Uid]; exist {
