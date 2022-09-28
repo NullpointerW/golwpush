@@ -30,10 +30,17 @@ type Conn struct {
 	sendSeq   atomic.Value
 }
 
+type ackTicker struct {
+	pkg                      pkg.SendMarshal
+	pending                  context.Context
+	deadline, actualSendTime time.Time
+}
+
 type ackPeek struct {
 	ack            context.CancelFunc
 	actualSendTime time.Time
 }
+
 type Addr interface {
 	net.Addr
 	Uid() uint64
@@ -158,7 +165,8 @@ func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
 	conn.close()
 	cancelFunc()
 }
-func readHandle(ctx context.Context, rHandler chan string, errCh chan error, pingCh, reset chan struct{}, ackBuf utils.ChanMap[string, ackPeek]) {
+func readHandle(ctx context.Context, rHandler chan string, errCh chan error, pingCh, reset chan struct{},
+	ackBuf utils.ChanMap[string, ackPeek]) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -242,8 +250,44 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 		return
 	}
 }
-func ackAcquire() {
-
+func ackPipelineV2(ackReceiver chan *ackTicker, uid uint64, ctx context.Context, pdsDel chan string) {
+	dbWriteTick := time.NewTimer(time.Second * 30)
+	key := persist.RedisKeyPrefix + strconv.FormatUint(uid, 10)
+	var zmem []redis.Z
+	defer dbWriteTick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			persist.Redis.ZAdd(key, zmem...)
+			return
+		case <-dbWriteTick.C:
+			if len(zmem) > 0 {
+				persist.Redis.ZAdd(key, zmem...)
+				zmem = nil
+			}
+		case ack := <-ackReceiver:
+			cmp, d := utils.TimeCmp(ack.deadline, time.Now())
+			if cmp < 1 {
+				goto check
+			}
+			time.Sleep(d)
+		check:
+			select {
+			case <-ack.pending.Done():
+			default:
+				//db
+				pdsDel <- ack.pkg.MsgId
+				v, _ := json.Marshal(ack.pkg)
+				mem := redis.Z{Score: float64(ack.actualSendTime.UnixMilli()),
+					Member: v}
+				zmem = append(zmem, mem)
+				if len(zmem) == 500 {
+					persist.Redis.ZAdd(key, zmem...)
+					zmem = nil
+				}
+			}
+		}
+	}
 }
 
 func msgRetransmission(conn *Conn, ctx context.Context) {
