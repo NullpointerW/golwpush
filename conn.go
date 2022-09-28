@@ -96,15 +96,18 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	reset := make(chan struct{}, 100) //心跳重置
 	ctx, cancel := context.WithCancel(context.Background())
 	rHandler := make(chan string, 2048)
+	ackch := make(chan *ackTicker, 2048)
 
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
 	go readHandle(ctx, rHandler, errCh, pingCh, reset, ackBuf)
-
+	//读 goroutine
 	go readLoop(ctx, conn, errCh, rHandler)
-
+	//心跳检测
 	go heartBeatCheck(ctx, conn, errCh, pingCh, reset, wch)
-
+	//丢失消息重发
 	go msgRetransmission(conn, ctx)
+	//ack消息确认/持久化
+	go ackPipelineV2(ackch, conn.Uid, ctx, ackBuf.Del)
 
 	var (
 		err error
@@ -149,7 +152,6 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	}
 fatal:
 	connFatal(err, conn, cancel)
-
 }
 
 func connFatal(err error, conn *Conn, cancelFunc context.CancelFunc) {
@@ -281,7 +283,7 @@ func ackPipelineV2(ackReceiver chan *ackTicker, uid uint64, ctx context.Context,
 				mem := redis.Z{Score: float64(ack.actualSendTime.UnixMilli()),
 					Member: v}
 				zmem = append(zmem, mem)
-				if len(zmem) == 500 {
+				if len(zmem) >= 500 {
 					persist.Redis.ZAdd(key, zmem...)
 					zmem = nil
 				}
