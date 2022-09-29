@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 )
@@ -31,4 +32,10 @@ func TimeCmp(t1 time.Time, t2 time.Time) (cmp int, d time.Duration) {
 		return 1, t1.Sub(t2)
 	}
 	return -1, t2.Sub(t1)
+}
+
+func JsonStrValid(jStr string) bool {
+	var raw json.RawMessage = []byte(jStr)
+	_, err := json.Marshal(raw)
+	return err == nil
 }

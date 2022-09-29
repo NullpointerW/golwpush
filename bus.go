@@ -42,8 +42,8 @@ var (
 )
 
 func Handle() {
-
 	go lingerProcess()
+
 	for {
 		select {
 		case content := <-pushCh0:
@@ -94,7 +94,7 @@ func InitConn(tcpConn net.Conn) {
 		logger.Error(err)
 		return
 	}
-	newClient(tcpConn, uid)
+	newConn(tcpConn, uid)
 }
 
 func AuthCli(conn net.Conn) (uid uint64, err error) {

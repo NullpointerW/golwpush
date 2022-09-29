@@ -57,6 +57,7 @@ func exec(uid uint64) {
 		switch tPkg.Mode {
 		case pkg.PONG:
 			pCli.PongRecv()
+
 		case pkg.MSG:
 			reset <- struct{}{}
 			logger.PlnNUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), string(tPkg.Data))

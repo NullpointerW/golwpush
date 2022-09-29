@@ -17,6 +17,7 @@ func init() {
 
 func main() {
 	logger.Info("start pushServer")
+
 	go func() {
 		logger.Infof("staring http server...")
 		mux := http.NewServeMux()
@@ -28,8 +29,8 @@ func main() {
 		mux.Handle("/info", http.HandlerFunc(h.Info))
 		log.Fatal(http.ListenAndServe("localhost:8000", mux))
 	}()
-
 	logger.Infof("staring tcp server...")
+
 	listener, err := net.Listen("tcp", "localhost:9000")
 	if err != nil {
 		logger.Fatal(err)

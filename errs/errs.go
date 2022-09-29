@@ -17,6 +17,8 @@ var (
 	ServiceCallTimedOut = errors.New("service has not responded for a long time")
 
 	AckBuffCapLimit = errors.New("ackBuffer capacity is full")
+
+	NonJsonFormat = errors.New("")
 )
 
 type DuplicateConnIdErr struct {

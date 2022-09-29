@@ -151,6 +151,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			goto fatal
 		}
 	}
+
 fatal:
 	connFatal(err, conn, cancel)
 }
@@ -174,6 +175,7 @@ func readHandle(ctx context.Context, rHandler chan string, errCh chan error, pin
 		select {
 		case <-ctx.Done():
 			return
+
 		case unDec := <-rHandler:
 			p, err := pkg.New(unDec)
 			if err != nil {
@@ -196,6 +198,7 @@ func readLoop(ctx context.Context, conn *Conn, errCh chan error, rHandler chan s
 		select {
 		case <-ctx.Done():
 			return
+
 		default:
 			msg, err := conn.read()
 			if err != nil {
@@ -222,14 +225,17 @@ func heartBeatCheck(ctx context.Context, conn *Conn, errCh chan error, pingCh, r
 			logger.PlnWAddr(logger.L_Debug|logger.PingOutput, conn.Addr.Uid(), conn.Addr.String(),
 				"heartbeat check end") //debug
 			return
+
 		case <-t.C:
 			logger.PlnWAddr(logger.L_Warn|logger.HeartBeat|logger.Srv, conn.Addr.Uid(), conn.Addr.String(),
 				"Heartbeat timeout 60s...") //debug
 			errCh <- errs.HeartbeatTimeout
 			return
+
 		case <-pingCh:
 			wch <- pkg.PongMarshaled
 			t.Reset(time.Minute * 1)
+
 		case <-reset:
 			t.Reset(time.Minute * 1)
 		}
@@ -243,11 +249,11 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 	select {
 	case <-t.C:
 		pds.Del <- id
-		//TODO 消息持久化
 		mem, _ := json.Marshal(p)
 		persist.Redis.ZAdd(persist.KeyCache.Key(strconv.FormatUint(uid, 10)), redis.Z{Score: float64(s.UnixMilli()),
 			Member: mem})
 		logger.Warnf("ack time out,msg id:%s", p.MsgId)
+
 	case <-ctx.Done():
 		logger.Warnf("ack from id:%s", p.MsgId)
 		return
@@ -263,11 +269,13 @@ func ackPipelineV2(ackReceiver chan ackTicker, uid uint64, ctx context.Context, 
 		case <-ctx.Done():
 			persist.Redis.ZAdd(key, zmem...)
 			return
+
 		case <-dbWriteTick.C:
 			if len(zmem) > 0 {
 				persist.Redis.ZAdd(key, zmem...)
 				zmem = nil
 			}
+
 		case ack := <-ackReceiver:
 			cmp, d := utils.TimeCmp(ack.deadline, time.Now())
 			if cmp < 1 {
@@ -277,6 +285,7 @@ func ackPipelineV2(ackReceiver chan ackTicker, uid uint64, ctx context.Context, 
 		check:
 			select {
 			case <-ack.pending.Done():
+
 			default:
 				//db
 				pdsDel <- ack.pkg.MsgId
@@ -306,6 +315,7 @@ func msgRetransmission(conn *Conn, ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
+
 		default:
 			r, err := persist.Redis.ZRange(k, int64(i*size), int64(i*size+size)-1).Result()
 			//r, err := persist.Redis.ZPopMin(k, int64(size)).Result()
@@ -332,7 +342,7 @@ func msgRetransmission(conn *Conn, ctx context.Context) {
 	}
 }
 
-func newClient(tcpConn net.Conn, id uint64) {
+func newConn(tcpConn net.Conn, id uint64) {
 	wch := make(chan pkg.SendMarshal, 2048)
 	errCh := make(chan error, 5)
 	seq := atomic.Value{}
