@@ -96,7 +96,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	reset := make(chan struct{}, 100) //心跳重置
 	ctx, cancel := context.WithCancel(context.Background())
 	rHandler := make(chan string, 2048)
-	ackch := make(chan *ackTicker, 2048)
+	ackCh := make(chan ackTicker, 2048)
 
 	//避免在读goroutine解码，通过一个goroutine处理所有读到的包
 	go readHandle(ctx, rHandler, errCh, pingCh, reset, ackBuf)
@@ -107,7 +107,7 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 	//丢失消息重发
 	go msgRetransmission(conn, ctx)
 	//ack消息确认/持久化
-	go ackPipelineV2(ackch, conn.Uid, ctx, ackBuf.Del)
+	go ackPipelineV2(ackCh, conn.Uid, ctx, ackBuf.Del)
 
 	var (
 		err error
@@ -119,12 +119,13 @@ func connHandle(wch chan pkg.SendMarshal, errCh chan error, uid uint64, tcpConn 
 			if msg.Mode == pkg.MSG {
 				//TODO ACK
 				pending, ack := context.WithCancel(context.Background())
+				curr := time.Now()
+				deadline := curr.Add(30 * time.Second)
 				if ok := ackBuf.Put(msg.MsgId, ackPeek{
 					ack:            ack,
-					actualSendTime: time.Now(),
+					actualSendTime: curr,
 				}); ok {
-					go ackPipeline(pending, ackBuf, msg.MsgId, msg, ackBuf0[msg.MsgId].actualSendTime, conn.Uid)
-					//continue
+					ackCh <- ackTicker{msg, pending, deadline, curr}
 				} else {
 					err = errs.AckBuffCapLimit
 					goto fatal
@@ -252,7 +253,7 @@ func ackPipeline[K comparable, V any](ctx context.Context, pds utils.ChanMap[K, 
 		return
 	}
 }
-func ackPipelineV2(ackReceiver chan *ackTicker, uid uint64, ctx context.Context, pdsDel chan string) {
+func ackPipelineV2(ackReceiver chan ackTicker, uid uint64, ctx context.Context, pdsDel chan string) {
 	dbWriteTick := time.NewTimer(time.Second * 30)
 	key := persist.RedisKeyPrefix + strconv.FormatUint(uid, 10)
 	var zmem []redis.Z

@@ -23,12 +23,12 @@ type DuplicateConnIdErr struct {
 	s string
 }
 
-func (e *DuplicateConnIdErr) Error() string {
+func (e DuplicateConnIdErr) Error() string {
 	return e.s
 }
 
 func NewDuplicateConnIdErr(id uint64) error {
-	err := new(DuplicateConnIdErr)
+	err := DuplicateConnIdErr{}
 	err.s = fmt.Sprintf("duplicate connection id %d:already exisit", id)
 	return err
 }
