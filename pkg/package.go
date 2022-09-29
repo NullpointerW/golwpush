@@ -21,10 +21,10 @@ const (
 )
 
 type Package struct {
-	Uid  string `json:"uid,omitempty"`
-	Id   string `json:"id"`
-	Mode Typ    `json:"mode"`
-	Data string `json:"data,omitempty"` // ACK
+	Uid  string          `json:"uid,omitempty"`
+	Id   string          `json:"id"`
+	Mode Typ             `json:"mode"`
+	Data json.RawMessage `json:"data,omitempty"` // ACK
 }
 
 type SendMarshal struct {

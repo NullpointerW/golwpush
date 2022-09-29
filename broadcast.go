@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"github.com/NullpointerW/golwpush/pkg"
 	"github.com/NullpointerW/golwpush/protocol"
+	"github.com/NullpointerW/golwpush/utils"
 	"time"
 )
 
 type lingerBuf struct {
-	data  []string
+	data  []json.RawMessage
 	size  int
 	len   int
 	alloc int
@@ -33,7 +34,7 @@ func lingerProcess() {
 		}
 	}
 }
-func (lg *lingerBuf) append(msg string, msgSize int) {
+func (lg *lingerBuf) append(msg json.RawMessage, msgSize int) {
 	lgLen := lg.len
 	if lg.alloc <= lgLen {
 		lg.data = append(lg.data, msg)
@@ -50,14 +51,14 @@ func (lg *lingerBuf) flush() {
 	lg.size = 0
 	lg.len = 0
 	if lg.alloc > 2048*2 {
-		lg.data = make([]string, 2048)
+		lg.data = make([]json.RawMessage, 2048)
 		lg.alloc = 2048
 	}
 
 }
 
 var lgBuf = lingerBuf{
-	make([]string, 2048),
+	make([]json.RawMessage, 2048),
 	0,
 	0,
 	2048,
@@ -71,42 +72,41 @@ type Contents struct {
 
 func (c Contents) pkg() *pkg.Package {
 	return &pkg.Package{
-		Data: c.Msg,
+		Data: utils.Scb(c.Msg),
 		Mode: pkg.MSG,
 	}
 }
 
 func broadcaster(broadMsg *pkg.Package) {
-	//t := time.Now()
 	for _, conn := range conns {
 		c := conn
 		go func(p pkg.Package) {
 			c.write(&p)
 		}(*broadMsg)
 	}
-	//logger.Debugf("encode:%d", time.Now().Sub(t).Milliseconds())
 }
 
 func mergeMsg(msg string) (send bool) {
 	msgSize, lgLen := len(msg), lgBuf.len
+	raw := utils.Scb(msg)
 	meSize := lgBuf.size + msgSize
 	if s := protocol.MaxLen - ((pkg.MsgModeExtraLen) + 2 + ((lgLen + 1) * 4) + lgLen); lgLen > 0 && meSize >= s {
 		if meSize > s {
 			lingerSend()
-			lgBuf.data[0] = msg
+			lgBuf.data[0] = raw
 			lgBuf.len++
 			lgBuf.size = msgSize
 		} else {
-			lgBuf.append(msg, msgSize)
+			lgBuf.append(raw, msgSize)
 			lingerSend()
 		}
 		return true
 	} else if s = protocol.MaxLen - pkg.MsgModeExtraLen; lgLen == 0 && msgSize == s {
-		lgBuf.append(msg, msgSize)
+		lgBuf.append(raw, msgSize)
 		lingerSend()
 		return true
 	}
-	lgBuf.append(msg, msgSize)
+	lgBuf.append(raw, msgSize)
 	return
 }
 
@@ -115,15 +115,16 @@ func lingerSend() {
 	if lgLen <= 0 || lgSize <= 0 {
 		return
 	}
-	var b []byte
+	var (
+		b []byte
+	)
 	if lgLen == 1 {
-		b, _ = json.Marshal(lgBuf.data[0])
+		b = lgBuf.data[0]
 	} else {
 		b, _ = json.Marshal(lgBuf.data[:lgLen])
 	}
-	msg := string(b)
 	p := &pkg.Package{Mode: pkg.MSG,
-		Data: msg}
+		Data: b}
 	mergedMsg <- p
 	lgBuf.flush()
 }

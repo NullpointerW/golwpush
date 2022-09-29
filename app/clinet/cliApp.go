@@ -17,7 +17,7 @@ func init() {
 	logger.ModifyLv(logger.Dev)
 }
 func main() {
-	for i := 1; i <= 5; i++ {
+	for i := 1; i <= 1200; i++ {
 		uid := uint64(i)
 		go exec(uid)
 	}
@@ -34,11 +34,13 @@ func exec(uid uint64) {
 	if uid == 0 {
 		uid = uint64(rand.Int63n(10000) + 1) //随机生成id
 	}
-	pCli, _ := cli.NewClient(conn, uint64(uid))
+	pCli, _ := cli.NewClient(conn, uid)
 	defer pCli.Close()
 	pCli.Auth()
 	reset := make(chan struct{}, 100)
+
 	go cli.SendHeartbeat(pCli)
+
 	go cli.HeartbeatCheck(pCli, reset)
 
 	for {
@@ -57,23 +59,19 @@ func exec(uid uint64) {
 			pCli.PongRecv()
 		case pkg.MSG:
 			reset <- struct{}{}
-			logger.PlnNUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), tPkg.Data)
+			logger.PlnNUid(logger.MsgOutput|logger.Host, conn.RemoteAddr().String(), string(tPkg.Data))
 			recvTime := time.Now().Format(utils.TimeParseLayout)
-			raw, err := json.Marshal(&pkg.Package{Mode: pkg.ACK, Id: tPkg.Id, Data: recvTime}) //ack 确认
+			jsonRaw, _ := json.Marshal(recvTime)
+			raw, err := json.Marshal(&pkg.Package{Mode: pkg.ACK, Id: tPkg.Id, Data: jsonRaw}) //ack 确认
 			if err != nil {
 				log.Print(err)
 			}
 			pCli.Write(protocol.CatEndFlag(utils.Bcs(raw)))
 		}
 	}
-
 }
+
 func fatal(err error, pCli cli.PushCli) {
 	pCli.Close()
 	logger.Fatal(err)
 }
-
-//func rawPack(raw string) string {
-//	raw += string(protocol.EndFlag)
-//	return raw
-//}

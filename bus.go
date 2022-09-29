@@ -19,7 +19,7 @@ type Content struct {
 
 func (c Content) pkg() *pkg.Package {
 	return &pkg.Package{
-		Data: c.Msg,
+		Data: utils.Scb(c.Msg),
 		Mode: pkg.MSG,
 	}
 }
