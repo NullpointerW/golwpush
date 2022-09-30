@@ -28,7 +28,7 @@ func respBadReq(w http.ResponseWriter, t any) {
 func respMethodNA(w http.ResponseWriter, t any) {
 	resp(MethodNotAllowed, w, t)
 }
-func respUnauth(w http.ResponseWriter, t any) {
+func respUnAuth(w http.ResponseWriter, t any) {
 	resp(Unauthorized, w, t)
 }
 func respForbid(w http.ResponseWriter, t any) {

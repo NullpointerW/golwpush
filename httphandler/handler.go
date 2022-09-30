@@ -39,7 +39,6 @@ func (h Handler) Broadcast(w http.ResponseWriter, req *http.Request) {
 		respSrvErr(w, err)
 		return
 	}
-	//logger.Debugf("gol:%d", time.Now().Sub(t).Milliseconds())
 	respOk(w, "ok")
 }
 

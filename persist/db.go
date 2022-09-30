@@ -55,13 +55,13 @@ func init() {
 	Redis = redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
-		//DB:       32,
+		//DB:       0,
 	})
 	_, err := Redis.Ping().Result()
 	if err != nil {
 		logger.Fatal(err.Error())
 	}
-	logger.Infof("redis connected,conn pool num:%d", runtime.NumCPU()*10)
+	logger.Infof("redis[host:%s]connected,conn_pool_num:%d", "localhost:6379", runtime.NumCPU()*10)
 	KeyCache = &namedkeyCachev2{
 		sync.RWMutex{},
 		make(map[string]string),
