@@ -14,4 +14,30 @@ Card](https://goreportcard.com/badge/github.com/NullpointerW/golwpush)](https://
  * 心跳支持
  * 客户端连接的统计信息
  
+ ## 安装
 
+golang1.18，基于gomod管理依赖。
+
+* 下载golwpush
+
+```
+go get github.com/NullpointerW/golwpush
+```
+
+* 安装依赖
+
+```
+export GOPROXY=goproxy.io
+go mod download
+```
+
+* 运行service服务
+
+```
+ go run ./app 
+```
+
+* 运行client客户端
+```
+ go run  ./app/clinet &&
+```
