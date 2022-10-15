@@ -60,3 +60,31 @@ go mod download
  go run  ./app/clinet &&
 ```
 
+## 测试
+ * 单个uid推送
+ ```
+curl http://localhost:8000/push?id=1 -X POST -d '{"user_id": "1", "coin":100, "success":1, "text":"recv_OK!" }' 
+
+```
+ * 多个uid推送
+ ```
+curl http://localhost:8000/multiPush -X POST -d '{"ids":[1,59,2035] , "msg":"recv_OK!" }' 
+
+```
+ * 广播推送
+ ```
+curl http://localhost:8000/broadcast -X POST -d '{"user_id": "all", "coin":100, "success":1, "text":"recv_OK!" }' 
+
+```
+ * 查看当前总连接数
+ ```
+curl http://localhost:8000/count 
+
+```
+
+ * 查看用户连接信息
+ ```
+curl http://localhost:8000/info?id=1
+
+```
+
