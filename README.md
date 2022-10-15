@@ -13,6 +13,24 @@ Card](https://goreportcard.com/badge/github.com/NullpointerW/golwpush)](https://
  * 通过聚合广播消息合并发送，减少io调用，大幅提升网络吞吐量
  * 心跳支持
  * 客户端连接的统计信息
+
+ ## 项目结构
+
+```
+                | app --服务端\客户端启动入口
+                | err --异常定义
+ package ---    | httphandler --http请求处理
+                | netrw --tcp数据包读取(解决`粘包`)
+                | protocol --消息编解码
+                | utlis --各种工具
+
+              | bus.go --(总线)管理所有客户端的连接对象
+  core ---    | broadcast.go --广播推送实现
+              | api.go --功能接口定义
+              | conn.go --连接处理
+
+    
+```
  
  ## 安装
 
@@ -41,19 +59,4 @@ go mod download
 ```
  go run  ./app/clinet &&
 ```
-##项目结构
-```
-                | app --服务端\客户端启动入口
-                | err --业务异常定义
- package ---    | httphandler --http请求处理
-                | netrw--tcp数据包读取(解决`粘包`)
-                | protocol--消息编解码
-                | utlis--各种工具
 
-              | bus.go--(总线)管理所有客户端的连接对象
-  core --     | broadcast.go--广播推送实现
-              | api.go--业务接口定义
-              | conn.go--连接处理
-
-    
-```
