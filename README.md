@@ -41,3 +41,19 @@ go mod download
 ```
  go run  ./app/clinet &&
 ```
+##项目结构
+```
+                | app --服务端\客户端启动入口
+                | err --业务异常定义
+ package ---    | httphandler --http请求处理
+                | netrw--tcp数据包读取(解决`粘包`)
+                | protocol--消息编解码
+                | utlis--各种工具
+
+              | bus.go--(总线)管理所有客户端的连接对象
+  core --     | broadcast.go--广播推送实现
+              | api.go--业务接口定义
+              | conn.go--连接处理
+
+    
+```
