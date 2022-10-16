@@ -20,6 +20,8 @@ Card](https://goreportcard.com/badge/github.com/NullpointerW/golwpush)](https://
                 | app --服务端\客户端启动入口
                 | err --异常定义
  package ---    | httphandler --http请求处理
+                | logger --日志存储服务
+                | persist --消息持久化
                 | netrw --tcp数据包读取(解决`粘包`)
                 | protocol --消息编解码
                 | utlis --各种工具
@@ -57,7 +59,7 @@ go mod download
 
 * 运行client客户端
 ```
- go run  ./app/clinet &&
+ go run  ./app/clinet 
 ```
 
 ## 测试
