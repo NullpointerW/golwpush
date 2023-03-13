@@ -26,10 +26,10 @@ Card](https://goreportcard.com/badge/github.com/NullpointerW/golwpush)](https://
                 | protocol --消息编解码
                 | utlis --各种工具
 
-              | bus.go --(总线)管理所有客户端的连接对象
-  core ---    | broadcast.go --广播推送实现
-              | api.go --功能接口定义
-              | conn.go --连接处理
+                | bus.go --(总线)管理所有客户端的连接对象
+    core ---    | broadcast.go --广播推送实现
+                | api.go --功能接口定义
+                | conn.go --连接处理
 
     
 ```
