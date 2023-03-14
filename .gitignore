@@ -1,2 +1,5 @@
 /.idea/
 *.iml
+# /.vscode
+/app/client/log
+/app/log

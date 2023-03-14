@@ -53,7 +53,7 @@ func (c *namedkeyCachev1) Key(k string) string {
 
 func init() {
 	Redis = redis.NewClient(&redis.Options{
-		Addr:     "192.168.1.81:6379",
+		Addr:     "127.0.0.1:6379",
 		Password: "",
 		//DB:       0,
 	})

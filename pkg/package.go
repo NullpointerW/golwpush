@@ -22,7 +22,7 @@ const (
 
 type Package struct {
 	Uid  string          `json:"uid,omitempty"`
-	Id   string          `json:"id"`
+	Id   string          `json:"id,omitempty"`
 	Mode Typ             `json:"mode"`
 	Data json.RawMessage `json:"data,omitempty"` // ACK
 }
@@ -43,6 +43,7 @@ var (
 
 func New(msg string) (*Package, error) {
 	pkg := &Package{}
+	// fmt.Println("json_raw is"+msg)
 	err := json.Unmarshal(utils.Scb(msg), pkg)
 	if err != nil {
 		return nil, err
