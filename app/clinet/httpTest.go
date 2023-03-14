@@ -12,19 +12,19 @@ func main() {
 	url := "http://localhost:8000/broadcast"
 	client := &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns: 0, MaxConnsPerHost: 300,
+			MaxIdleConns: 0, MaxConnsPerHost: 1000,
 		},
 	}
-	var do = 300
+	var do = 1000
 	var wg sync.WaitGroup
 	wg.Add(do)
 	t := time.Now()
 	for i := 0; i < do; i++ {
 		go func(seq int) {
-			for i := 0; i < 40; i++ {
+			for i := 0; i < 2; i++ {
 				//raw, _ := json.Marshal("push-testing" + strconv.Itoa(seq) + ":" + strconv.Itoa(i))
 				resp, err := client.Post(url, "text/xml",
-					strings.NewReader(`"test"`))
+					strings.NewReader(`"test+"`+time.Now().String()))
 				if err != nil {
 					fmt.Println(err)
 				}

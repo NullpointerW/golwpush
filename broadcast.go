@@ -90,6 +90,7 @@ func mergeMsg(msg string) (send bool) {
 	msgSize, lgLen := len(msg), lgBuf.len
 	raw := utils.Scb(msg)
 	meSize := lgBuf.size + msgSize
+	//todo 需要更改下数据包的计算规则？
 	if s := protocol.MaxLen - ((pkg.MsgModeExtraLen) + 2 + ((lgLen + 1) * 4) + lgLen); lgLen > 0 && meSize >= s {
 		if meSize > s {
 			lingerSend()

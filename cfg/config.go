@@ -1,6 +1,7 @@
 package cfg
 
 type config struct {
+	HttpPort   int
 	WchBufSize int
 }
 

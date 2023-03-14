@@ -33,7 +33,7 @@ func Unpack(b []byte, wIdx *int, jmp bool) (msg string, retry bool, err error) {
 		}
 	}
 
-	if len(b) == MaxLen {
+	if len(b) >= MaxLen {
 		err = errs.UnpackOutOfSize
 		return
 	}

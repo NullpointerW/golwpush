@@ -53,13 +53,13 @@ func (c *namedkeyCachev1) Key(k string) string {
 
 func init() {
 	Redis = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "192.168.1.81:6379",
 		Password: "",
 		//DB:       0,
 	})
 	_, err := Redis.Ping().Result()
 	if err != nil {
-		logger.Fatal(err.Error())
+		logger.Fatal("redis start fail: " + err.Error())
 	}
 	logger.Infof("redis[host:%s]connected,conn_pool_num:%d", "localhost:6379", runtime.NumCPU()*10)
 	KeyCache = &namedkeyCachev2{
