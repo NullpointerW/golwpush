@@ -16,22 +16,22 @@ const (
 	ServerError      statusCode = 500
 )
 
-func respOk(w http.ResponseWriter, t any) {
+func RespOk(w http.ResponseWriter, t any) {
 	resp(OK, w, t)
 }
-func respSrvErr(w http.ResponseWriter, t any) {
+func RespSrvErr(w http.ResponseWriter, t any) {
 	resp(ServerError, w, t)
 }
-func respBadReq(w http.ResponseWriter, t any) {
+func RespBadReq(w http.ResponseWriter, t any) {
 	resp(BadRequest, w, t)
 }
-func respMethodNA(w http.ResponseWriter, t any) {
+func RespMethodNA(w http.ResponseWriter, t any) {
 	resp(MethodNotAllowed, w, t)
 }
-func respUnAuth(w http.ResponseWriter, t any) {
+func RespUnAuth(w http.ResponseWriter, t any) {
 	resp(Unauthorized, w, t)
 }
-func respForbid(w http.ResponseWriter, t any) {
+func RespForbid(w http.ResponseWriter, t any) {
 	resp(Forbidden, w, t)
 }
 
